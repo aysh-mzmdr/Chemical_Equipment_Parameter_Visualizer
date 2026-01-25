@@ -8,7 +8,7 @@ body{
   --bg-secondary: #ffffff;
   --text-primary: #0f172a;
   --text-secondary: #64748b;
-  --accent-color: #0ea5e9; /* Scientific Blue */
+  --accent-color: #0ea5e9;
   --accent-glow: rgba(14, 165, 233, 0.2);
   --border-color: #e2e8f0;
   --glass-bg: rgba(255, 255, 255, 0.7);
@@ -17,11 +17,11 @@ body{
 
 [data-theme='dark'] {
   /* Dark Theme Overrides */
-  --bg-primary: #020617; /* Deep Slate */
+  --bg-primary: #020617;
   --bg-secondary: #0f172a;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --accent-color: #38bdf8; /* Cyan Neon */
+  --accent-color: #38bdf8;
   --accent-glow: rgba(56, 189, 248, 0.25);
   --border-color: #1e293b;
   --glass-bg: rgba(15, 23, 42, 0.6);
@@ -30,7 +30,7 @@ body{
 
 /* Base Layout */
 .container {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
@@ -93,7 +93,7 @@ body{
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: rgba(148, 163, 184, 0.1); /* Subtle tint */
+  background-color: rgba(148, 163, 184, 0.1);
   color: var(--text-primary);
   border: 1px solid transparent;
   padding: 0.6rem 1rem;
@@ -104,18 +104,12 @@ body{
 }
 
 .loginBtn:hover {
-  background-color: rgba(148, 163, 184, 0.2); /* Darker on hover */
+  background-color: rgba(148, 163, 184, 0.2);
   transform: translateY(-1px);
-  color: var(--accent-color); /* Text turns blue/cyan */
+  color: var(--accent-color);
 }
 
-/* Optional: Add a subtle separator line before the Login button if you want to group it away from the Theme toggle */
-.themeToggle + .loginBtn {
-  margin-left: 0.5rem;
-}
-
-/* Outline Button (Download) - Border only */
-.outlineBtn {
+.downloadBtn {
   background: transparent;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
@@ -126,13 +120,13 @@ body{
   transition: all 0.2s;
 }
 
-.outlineBtn:hover {
+.downloadBtn:hover {
   border-color: var(--text-primary);
   transform: translateY(-1px);
 }
 
-.primaryBtn {
-  background-color: var(--accent-color); /* Changed to use Accent Color for better pop */
+.signupBtn {
+  background-color: var(--accent-color);
   color: #fff;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -143,12 +137,11 @@ body{
   box-shadow: 0 4px 12px var(--accent-glow);
 }
 
-.primaryBtn:hover {
+.signupBtn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
 
-/* Update NavActions to handle the gap on smaller screens */
 .navActions {
   display: flex;
   gap: 0.75rem;
@@ -181,6 +174,7 @@ body{
 
 .textGradient {
   background: linear-gradient(90deg, var(--accent-color), #818cf8);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -276,11 +270,7 @@ body{
   margin-bottom: 1rem;
 }
 
-
-
-
-
-/* --- Scientific Monitor Styles --- */
+/* Mock Scientific Monitor */
 
 .monitorCard {
   background: var(--glass-bg);
@@ -313,32 +303,93 @@ body{
   border-radius: 50%;
 }
 
-.liveBadge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #10b981; /* Success Green */
-  background: rgba(16, 185, 129, 0.1);
-  padding: 2px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.pulseDot {
-  width: 6px;
-  height: 6px;
-  background-color: #10b981;
-  border-radius: 50%;
-  animation: livePulse 1.5s infinite;
-}
-
 .monitorBody {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+/* Bar Graphs */
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.graphContainer {
+  position: relative;
+  height: 140px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Grid Layer (Background) */
+.gridLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.gridLine {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border-color);
+  opacity: 0.5;
+  border-top: 1px dashed var(--border-color);
+}
+
+/* Bars (Foreground) */
+.barsLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 10px;
+  z-index: 2;
+}
+
+.barColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  flex: 1;
+  gap: 4px;
+}
+
+/* The actual colored bar */
+.barVisual {
+  width: 24px;
+  background: var(--accent-color);
+  border-radius: 4px 4px 0 0;
+  transition: height 1s ease-out;
+  animation: growUp 1s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.9;
+}
+
+/* Labels */
+
+.barLabel {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  height: 20px;
+  display: flex;
+  align-items: center;
 }
 
 /* Chart Section */
@@ -380,7 +431,7 @@ body{
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
-  font-family: 'Monaco', 'Courier New', monospace; /* Monospaced for numbers */
+  font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .pBadge {
@@ -406,6 +457,14 @@ body{
   50% { opacity: 1; }
 }
 
+@keyframes growUp {
+  from { height: 0; }
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .hero {
@@ -427,103 +486,4 @@ body{
   .ghostBtn, .outlineBtn {
     display: none;
   }
-}
-
-
-
-
-
-
-
-
-
-/* --- Practical Bar Graph Styles --- */
-
-.chartHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.graphContainer {
-  position: relative;
-  height: 140px; /* Fixed height for the graph area */
-  width: 100%;
-  margin-top: 10px;
-}
-
-/* 1. The Grid Layer (Background) */
-.gridLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 20px; /* Leave room for labels */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  z-index: 1;
-}
-
-.gridLine {
-  width: 100%;
-  height: 1px;
-  background-color: var(--border-color);
-  opacity: 0.5;
-  border-top: 1px dashed var(--border-color); /* Dashed lines look more technical */
-}
-
-/* 2. The Bars Layer (Foreground) */
-.barsLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end; /* Align bars to bottom */
-  padding: 0 10px;
-  z-index: 2;
-}
-
-.barColumn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  flex: 1;
-  gap: 4px;
-}
-
-/* The actual colored bar */
-.barVisual {
-  width: 24px;
-  background: var(--accent-color); /* Uses your theme color */
-  border-radius: 4px 4px 0 0;
-  transition: height 1s ease-out;
-  animation: growUp 1s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.9;
-}
-
-/* Labels */
-
-.barLabel {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  height: 20px; /* Fixed height matching bottom spacing */
-  display: flex;
-  align-items: center;
-}
-
-/* Animations */
-@keyframes growUp {
-  from { height: 0; }
-}
-
-@keyframes fadeIn {
-  to { opacity: 1; }
 }

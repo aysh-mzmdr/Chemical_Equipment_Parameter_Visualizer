@@ -38,8 +38,8 @@ const App = () => {
           </button>
           
           <button className={styles.loginBtn}><span>Login</span></button>
-          <button className={styles.outlineBtn}>Download App</button>
-          <button className={styles.primaryBtn}>Sign-Up</button>
+          <button className={styles.downloadBtn}>Download App</button>
+          <button className={styles.signupBtn}>Sign-Up</button>
         </div>
       </nav>
 
