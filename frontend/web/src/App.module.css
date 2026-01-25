@@ -1,0 +1,529 @@
+body{
+  margin:0;
+}
+/* Color & Theme Variables */
+:root {
+  /* Light Theme Defaults */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --accent-color: #0ea5e9; /* Scientific Blue */
+  --accent-glow: rgba(14, 165, 233, 0.2);
+  --border-color: #e2e8f0;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --grid-color: rgba(148, 163, 184, 0.1);
+}
+
+[data-theme='dark'] {
+  /* Dark Theme Overrides */
+  --bg-primary: #020617; /* Deep Slate */
+  --bg-secondary: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent-color: #38bdf8; /* Cyan Neon */
+  --accent-glow: rgba(56, 189, 248, 0.25);
+  --border-color: #1e293b;
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --grid-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Base Layout */
+.container {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px; /* Technical Grid Pattern */
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.logoIcon {
+  color: var(--accent-color);
+}
+
+.highlight {
+  color: var(--accent-color);
+}
+
+.navActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.themeToggle {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.themeToggle:hover {
+  background-color: var(--bg-secondary);
+}
+.loginBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(148, 163, 184, 0.1); /* Subtle tint */
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.loginBtn:hover {
+  background-color: rgba(148, 163, 184, 0.2); /* Darker on hover */
+  transform: translateY(-1px);
+  color: var(--accent-color); /* Text turns blue/cyan */
+}
+
+/* Optional: Add a subtle separator line before the Login button if you want to group it away from the Theme toggle */
+.themeToggle + .loginBtn {
+  margin-left: 0.5rem;
+}
+
+/* Outline Button (Download) - Border only */
+.outlineBtn {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.outlineBtn:hover {
+  border-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.primaryBtn {
+  background-color: var(--accent-color); /* Changed to use Accent Color for better pop */
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.primaryBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Update NavActions to handle the gap on smaller screens */
+.navActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Hero Section */
+.hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.title {
+  font-size: 3.5rem;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.05rem;
+}
+
+.textGradient {
+  background: linear-gradient(90deg, var(--accent-color), #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.ctaGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ctaUpload {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.ctaUpload:hover {
+  transform: translateY(-2px);
+}
+
+.ctaDemo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Features Grid */
+.features {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.featureCard {
+  background: var(--bg-secondary);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s;
+}
+
+.featureCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-color);
+}
+
+.iconBox {
+  width: 48px;
+  height: 48px;
+  background: var(--accent-glow);
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+
+
+
+
+/* --- Scientific Monitor Styles --- */
+
+.monitorCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  width: 100%;
+  max-width: 500px;
+}
+
+.monitorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0,0,0,0.03);
+}
+
+.windowControls {
+  display: flex;
+  gap: 6px;
+}
+
+.controlDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.liveBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #10b981; /* Success Green */
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.pulseDot {
+  width: 6px;
+  height: 6px;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: livePulse 1.5s infinite;
+}
+
+.monitorBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Chart Section */
+.chartSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chartLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Parameter Grid */
+.paramGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.paramBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pLabel {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.pValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Monaco', 'Courier New', monospace; /* Monospaced for numbers */
+}
+
+.pBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--accent-glow);
+  color: var(--accent-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+}
+
+@keyframes livePulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+  
+  .heroContent {
+    align-items: center;
+  }
+  
+  .badge {
+    align-self: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .ghostBtn, .outlineBtn {
+    display: none;
+  }
+}
+
+
+
+
+
+
+
+
+
+/* --- Practical Bar Graph Styles --- */
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.graphContainer {
+  position: relative;
+  height: 140px; /* Fixed height for the graph area */
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* 1. The Grid Layer (Background) */
+.gridLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 20px; /* Leave room for labels */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.gridLine {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border-color);
+  opacity: 0.5;
+  border-top: 1px dashed var(--border-color); /* Dashed lines look more technical */
+}
+
+/* 2. The Bars Layer (Foreground) */
+.barsLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* Align bars to bottom */
+  padding: 0 10px;
+  z-index: 2;
+}
+
+.barColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  flex: 1;
+  gap: 4px;
+}
+
+/* The actual colored bar */
+.barVisual {
+  width: 24px;
+  background: var(--accent-color); /* Uses your theme color */
+  border-radius: 4px 4px 0 0;
+  transition: height 1s ease-out;
+  animation: growUp 1s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.9;
+}
+
+/* Labels */
+
+.barLabel {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  height: 20px; /* Fixed height matching bottom spacing */
+  display: flex;
+  align-items: center;
+}
+
+/* Animations */
+@keyframes growUp {
+  from { height: 0; }
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
