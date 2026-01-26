@@ -56,7 +56,7 @@ const Signup = () => {
   return (
     <div className={styles.container}>
       {/* Back Navigation */}
-      <div className={styles.backLink} style={{cursor:"pointer"}} onClick={toHome}>
+      <div className={styles.backLink} style={{cursor:"pointer",zIndex:"10"}} onClick={toHome}>
         <ArrowLeft size={20} />
         <span>Home</span>
       </div>
