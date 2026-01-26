@@ -28,6 +28,8 @@ const LandingPage = () => {
 
   const navigate=useNavigate()
   const toLogin = () => {navigate("/login")}
+  const toSignup = () => {navigate("/signup")}
+
   return (
     <div className={styles.container}>
 
@@ -44,7 +46,7 @@ const LandingPage = () => {
           
           <button className={styles.loginBtn} onClick={toLogin}><span>Login</span></button>
           <button className={styles.downloadBtn}>Download App</button>
-          <button className={styles.signupBtn}>Sign-Up</button>
+          <button className={styles.signupBtn} onClick={toSignup}>Sign-Up</button>
         </div>
       </nav>
 
