@@ -21,10 +21,11 @@ const Login = () => {
       setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
   
-    // Apply theme to the website
   useEffect(() => {
        document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,6 +45,7 @@ const Login = () => {
 
   const navigate=useNavigate();
   const toHome = () => {navigate("/")};
+  const toSignup = () => {navigate("/signup")}
   return (
     <div className={styles.container}>
         <button className={styles.themeToggle} onClick={toggleTheme}>
@@ -55,10 +57,8 @@ const Login = () => {
         <span>Home</span>
       </div>
 
-      {/* Main Login Card */}
+      {/* Login Card */}
       <div className={styles.loginCard}>
-        
-        {/* Header Section */}
         <div className={styles.header}>
           <div className={styles.logoBadge}>
             <FlaskConical size={28} className={styles.logoIcon} />
@@ -69,10 +69,8 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Form Section */}
         <form onSubmit={handleSubmit} className={styles.form}>
           
-          {/* Email Field */}
           <div className={styles.inputGroup}>
             <label htmlFor="email" className={styles.label}>Email</label>
             <div className={styles.inputWrapper}>
@@ -90,7 +88,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Password Field */}
           <div className={styles.inputGroup}>
             <div className={styles.labelRow}>
               <label htmlFor="password" className={styles.label}>Password</label>
@@ -118,16 +115,14 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button type="submit" className={styles.submitBtn}>
             <span>Sign In</span>
             <ChevronRight size={18} />
           </button>
         </form>
 
-        {/* Footer */}
-        <div className={styles.footer}>
-          <p>Don't have an account? <a href="#" className={styles.signupLink}>Sign up here</a></p>
+       <div className={styles.footer}>
+          <p>Don't have an account? <span className={styles.signupLink} style={{cursor:"pointer"}} onClick={toSignup}>Sign up here</span></p>
         </div>
       </div>
     </div>

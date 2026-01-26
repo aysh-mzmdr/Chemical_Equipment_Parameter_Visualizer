@@ -1,9 +1,8 @@
-/* Ensure variables are available here as well */
 :root {
-  --bg-primary: #020617; /* Deep Slate default */
+  --bg-primary: #020617;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --accent-color: #38bdf8; /* Cyan Neon */
+  --accent-color: #38bdf8;
   --accent-glow: rgba(56, 189, 248, 0.25);
   --border-color: #1e293b;
   --glass-bg: rgba(15, 23, 42, 0.6);
@@ -11,7 +10,6 @@
   --grid-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Light Mode Overrides (if applied globally) */
 [data-theme='light'] {
   --bg-primary: #f8fafc;
   --text-primary: #0f172a;
@@ -43,12 +41,7 @@
   position: absolute;
   top: 1rem;
   right: 0.4rem;
-  
-
-    background: none;
-
-
-  /* Visual Style (Same as Landing Page) */
+  background: none;
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 0.5rem;
@@ -58,14 +51,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10; /* Ensure it stays above background elements */
+  z-index: 10;
 }
 
 .themeToggle:hover {
   background-color: var(--bg-secondary);
 }
 
-/* Back Link */
 .backLink {
   position: absolute;
   top: 1.5rem;
@@ -85,7 +77,6 @@
   transform: translateX(-3px);
 }
 
-/* Login Card */
 .loginCard {
   width: 100%;
   max-width: 420px;
@@ -132,7 +123,6 @@
   line-height: 1.5;
 }
 
-/* Form Styles */
 .form {
   display: flex;
   flex-direction: column;
@@ -184,7 +174,7 @@
 
 .input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem; /* Left padding for icon */
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
   background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -221,7 +211,6 @@
   color: var(--text-primary);
 }
 
-/* Submit Button */
 .submitBtn {
   margin-top: 0.5rem;
   display: flex;
@@ -249,7 +238,6 @@
   transform: translateY(0);
 }
 
-/* Footer */
 .footer {
   margin-top: 2rem;
   text-align: center;
@@ -274,12 +262,12 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Tweaks */
+/* Mobile Resolutions */
 @media (max-width: 480px) {
   .loginCard {
     padding: 1.5rem;
     margin: 1rem;
-    border: none; /* Cleaner on mobile */
+    border: none;
   }
   
   .backLink {
