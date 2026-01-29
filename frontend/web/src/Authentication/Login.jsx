@@ -25,23 +25,8 @@ const Login = () => {
        document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Login Attempt:', formData);
-    // Add authentication logic here
-  };
+  const[email,setEmail] = useState("");
+  const[password,setPassword] = useState("");
 
   const navigate=useNavigate();
   const toHome = () => {navigate("/")};

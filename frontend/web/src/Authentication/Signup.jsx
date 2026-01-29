@@ -27,27 +27,45 @@ const Signup = () => {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
-  
-  
-  // Form State
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: ''
-  });
 
-  // Form Handlers
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const[showPassword,setShowPassword] = useState(false)
+  
+  const[email,setEmail] = useState("");
+  const[password,setPassword] = useState("");
+  const[confirmPassword,setConfirmPassword] = useState("");
+  const[firstName,setFirstName] = useState("");
+  const[lastName,setLastName] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Signup Attempt:', formData);
-    // Add registration logic here
-  };
+  const handleSubmit = async(e) => {
+    e.preventDefault()
+    try{
+      if(password !== confirmPassword)
+        throw new Error("Password != Confirm Password")
+
+      const response=await fetch(`http://127.0.0.1:8000/signup/`,{
+        method:"POST",
+        credentials:"include",
+        headers:{
+          "Content-type":"application/json"
+        },
+        body:JSON.stringify({
+          username:email,
+          password:password,
+          first_name:firstName,
+          last_name:lastName,
+          email:email
+        })
+      })
+      if(response.status===201)
+        navigate("/")
+      else
+        throw new Error("Something went wrong")
+
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
 
   const navigate = useNavigate();
   const toHome = () => {navigate("/")}
@@ -90,8 +108,7 @@ const Signup = () => {
                   id="firstName"
                   name="firstName"
                   placeholder="John"
-                  value={formData.firstName}
-                  onChange={handleChange}
+                  onChange={(e) => setFirstName(e.target.value)}
                   className={styles.input}
                   required
                 />
@@ -106,8 +123,7 @@ const Signup = () => {
                   id="lastName"
                   name="lastName"
                   placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={handleChange}
+                  onChange={(e) => setLastName(e.target.value)}
                   className={styles.input}
                   style={{ paddingLeft: '1rem' }}
                   required
@@ -125,8 +141,7 @@ const Signup = () => {
                 id="email"
                 name="email"
                 placeholder="example@company.com"
-                value={formData.email}
-                onChange={handleChange}
+                onChange={(e) => setEmail(e.target.value)}
                 className={styles.input}
                 required
               />
@@ -142,8 +157,7 @@ const Signup = () => {
                 id="password"
                 name="password"
                 placeholder="Create a strong password"
-                value={formData.password}
-                onChange={handleChange}
+                onChange={(e) => setPassword(e.target.value)}
                 className={styles.input}
                 required
               />
@@ -166,8 +180,7 @@ const Signup = () => {
                 id="password"
                 name="password"
                 placeholder="Rewrite your password"
-                value={formData.password}
-                onChange={handleChange}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className={styles.input}
                 required
               />
