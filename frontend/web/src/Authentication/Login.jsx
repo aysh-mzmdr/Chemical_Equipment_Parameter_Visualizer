@@ -47,7 +47,7 @@ const Login = () => {
       if(response.status===200){
         const data = await response.json()
         localStorage.setItem('userToken',data.token)
-        localStorage.setItem('userInfo',JSON.stringify(data.user))
+        localStorage.setItem('userData',JSON.stringify(data.user))
         navigate("/dashboard");
       }
       else

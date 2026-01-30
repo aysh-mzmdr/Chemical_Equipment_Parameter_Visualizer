@@ -1,0 +1,487 @@
+/* --- 1. Theme Variables (Consistent across app) --- */
+:root {
+  --bg-primary: #020617; 
+  --bg-secondary: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent-color: #38bdf8; 
+  --accent-glow: rgba(56, 189, 248, 0.25);
+  --border-color: #1e293b;
+  --glass-bg: rgba(15, 23, 42, 0.6); 
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --grid-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='light'] {
+  --bg-primary: #f8fafc; 
+  --bg-secondary: #ffffff;
+  --text-primary: #0f172a; 
+  --text-secondary: #64748b;
+  --accent-color: #0ea5e9; 
+  --accent-glow: rgba(14, 165, 233, 0.15); 
+  --border-color: #e2e8f0;
+  --glass-bg: rgba(255, 255, 255, 0.85); 
+  --hover-bg: rgba(0, 0, 0, 0.05);
+  --grid-color: rgba(148, 163, 184, 0.15); 
+}
+
+/* --- 2. Main Layout --- */
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden; /* Prevent body scroll, handle inside main */
+}
+
+/* --- 3. Sidebar Styles --- */
+.sidebar {
+  width: 260px;
+  height: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  z-index: 50;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden; /* Hides content when width shrinks */
+  white-space: nowrap;
+}
+
+/* 2. Desktop Closed State */
+/* When closed, width becomes 0, effectively pulling it off screen */
+.sidebar.closed {
+  width: 0;
+  border: none;
+  opacity: 0; 
+}
+
+/* 3. Hamburger Button (In Main Header) */
+.hamburgerBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem; /* Space between btn and title */
+}
+
+.hamburgerBtn:hover {
+  background: var(--hover-bg);
+  color: var(--accent-color);
+}
+
+.logoSection {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logoIconBox {
+  width: 36px;
+  height: 36px;
+  background: var(--accent-glow);
+  color: var(--accent-color);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoText {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.highlight {
+  color: var(--accent-color);
+}
+
+/* Navigation Menu */
+.navMenu {
+  flex: 1; /* Pushes footer down */
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1rem;
+  gap: 0.5rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.navItem:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.navItem.active {
+  background: var(--accent-glow);
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* Vertical indicator line for active tab */
+.activeIndicator {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background-color: var(--accent-color);
+  border-radius: 3px 0 0 3px;
+}
+
+/* Sidebar Footer */
+.sidebarFooter {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-color);
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.footerItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  border-radius: 6px;
+}
+
+.footerItem:hover {
+  color: var(--text-primary);
+  background: var(--hover-bg);
+}
+
+.logoutBtn:hover {
+  color: #f43f5e; /* Warning Red */
+  background: rgba(244, 63, 94, 0.1);
+}
+
+/* User Mini Profile */
+.userMiniProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent-color), #818cf8);
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* --- 4. Main Content Styles --- */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Scroll only inside here */
+  position: relative;
+}
+
+.topHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  align-items: center;
+  background: rgba(var(--bg-primary), 0.8); /* Slight opacity */
+  backdrop-filter: blur(8px);
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.headerActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.iconBtn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.iconBtn:hover {
+  border-color: var(--accent-color);
+  color: var(--text-primary);
+}
+
+.notificationDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: #f43f5e;
+  border-radius: 50%;
+  border: 2px solid var(--bg-secondary);
+}
+
+.contentWrapper {
+    display: flex;
+    justify-content: center;
+  padding: 0 2.5rem 2.5rem 2.5rem;
+  flex: 1;
+}
+
+/* --- 5. Workspace Components --- */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Upload Card (Placeholder) */
+.uploadCard {
+  border: 2px dashed var(--border-color);
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.uploadCard:hover {
+  border-color: var(--accent-color);
+  background: var(--accent-glow);
+}
+
+.uploadIconCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+}
+
+.primaryBtn {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Empty Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.statCard {
+  height: 150px;
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
+
+/* Placeholder View */
+.placeholderState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.placeholderIcon {
+  margin-bottom: 1.5rem;
+  color: var(--border-color);
+}
+
+/* Mobile Responsive */
+
+.mobileCloseBtn {
+  display: none; /* Hidden on desktop */
+}
+
+.mobileOverlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* 4. Mobile Layout */
+  .container {
+    position: relative; /* Needed for absolute positioning context */
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px; /* Slightly wider on mobile for touch targets */
+    box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+    transform: translateX(0); /* Default Open State Position */
+  }
+
+  /* Mobile Closed State: Slide to the left */
+  .sidebar.closed {
+    width: 280px; /* Keep width fixed, just move it */
+    transform: translateX(-100%);
+    opacity: 1; /* Keep opacity, just move it */
+  }
+
+  /* Mobile Close Button (X) */
+  .mobileCloseBtn {
+    display: flex;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  /* Dark Overlay for Mobile */
+  .mobileOverlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 40; /* Below sidebar, above content */
+    animation: fadeIn 0.3s ease;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    padding: 0.5rem;
+    justify-content: space-around;
+  }
+
+  .logoSection, .sidebarFooter, .navItem span {
+    display: none;
+  }
+  
+  .navMenu {
+    flex-direction: row;
+    padding: 0;
+  }
+
+  .navItem {
+    padding: 1rem;
+  }
+  
+  .mainContent {
+    margin-bottom: 80px; /* Space for bottom nav */
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

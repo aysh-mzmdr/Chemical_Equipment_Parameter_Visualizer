@@ -1,4 +1,4 @@
-import { useState, useEffect,useContext } from 'react';
+import { useEffect,useContext } from 'react';
 import styles from './LandingPage.module.css';
 import { AppContext } from '../AppContext';
 import { useNavigate } from 'react-router-dom';
