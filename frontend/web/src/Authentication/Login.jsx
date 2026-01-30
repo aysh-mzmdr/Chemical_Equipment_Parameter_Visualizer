@@ -25,8 +25,39 @@ const Login = () => {
        document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  const[showPassword,setShowPassword] = useState("");
+
   const[email,setEmail] = useState("");
   const[password,setPassword] = useState("");
+
+  const handleLogin = async(e) => {
+    e.preventDefault()
+    try{
+      const response=await fetch(`http://127.0.0.1:8000/login/`,{
+          method:"POST",
+          credentials:"include",
+          headers:{
+            "Content-type":"application/json"
+          },
+          body:JSON.stringify({
+            username:email,
+            password:password,
+          })
+      })
+      if(response.status===200){
+        const data = await response.json()
+        localStorage.setItem('userToken',data.token)
+        localStorage.setItem('userInfo',JSON.stringify(data.user))
+        navigate("/dashboard");
+      }
+      else
+        throw new Error("Invalid Creadentials")
+    }
+    catch(err){
+      console.log(err)
+    }
+
+  }
 
   const navigate=useNavigate();
   const toHome = () => {navigate("/")};
@@ -54,7 +85,7 @@ const Login = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleLogin} className={styles.form}>
           
           <div className={styles.inputGroup}>
             <label htmlFor="email" className={styles.label}>Email</label>
@@ -65,8 +96,7 @@ const Login = () => {
                 id="email"
                 name="email"
                 placeholder="example@company.com"
-                value={formData.email}
-                onChange={handleChange}
+                onChange={e => setEmail(e.target.value)}
                 className={styles.input}
                 required
               />
@@ -85,8 +115,7 @@ const Login = () => {
                 id="password"
                 name="password"
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
+                onChange={e => setPassword(e.target.value)}
                 className={styles.input}
                 required
               />
