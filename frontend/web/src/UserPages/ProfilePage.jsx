@@ -40,17 +40,38 @@ const ProfilePage = ({user}) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e) => {
+  const handleSave = async(e) => {
     e.preventDefault();
-    
-    // Validation: Current password must be entered to save
-    if (!formData.currentPassword) {
+    const token=localStorage.getItem("userToken")
+    try{
+      const response = await fetch(`http://127.0.0.1:8000/update`,{
+        method:"PATCH",
+        headers:{
+          "Authorization":`Token ${token}`,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          username:email,
+          first_name:first_name,
+          last_name:last_name,
+          role:role,
+          company:company,
+          email:email,
+          newPassword:newPassword,
+          currentPassword:currentPassword
+        })
+      })
+      if(response.status===401)
+        currentPassword=false;
+    }
+    catch(err){
+      console.log(err)
+    }
+  
+    if(formData.currentPassword===false) {
       alert("Please enter your Current Password to confirm changes.");
       return;
     }
-
-    // API Call would go here...
-    console.log("Saving Profile:", formData);
 
     // Success Update
     setUserData({

@@ -45,3 +45,22 @@ def login(request):
 def logout(request):
     request.auth.delete()
     return Response(status=status.HTTP_200_OK)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update(request):
+    user=request.user
+    newUser=user=authenticate(username=request.data.get('username'),password=request.data.get('password'))
+    if user is newUser:
+        user.username=request.data.get('email')
+        user.first_name=request.data.get('first_name')
+        user.last_name=request.data.get('last_name')
+        user.email=request.data.get('email')
+        user.profile.role=request.data.get('role')
+        user.profile.company=request.data.get('company')
+        user.save()
+        user.profile.save()
+        return Response(status=status.HTTP_202_ACCEPTED)
+    
+    else:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
