@@ -79,7 +79,7 @@ const Dashboard = () => {
         case 'History':
             return <HistoryPage title="History Log" icon={<History size={48} />} />;
         case 'Profile':
-            return <ProfilePage title="User Profile" icon={<UserCircle size={48} />} />;
+            return <ProfilePage user={user} icon={<UserCircle size={48} />} />;
         default:
             return <WorkspacePage />;
         }
@@ -152,6 +152,7 @@ const Dashboard = () => {
             <div className={styles.userAvatar}>{user.first_name[0]}{user.last_name[0]}</div>
             <div className={styles.userInfo}>
             <span className={styles.userName}>{user.first_name} {user.last_name}</span>
+            <span className={styles.userRole}>{user.role}</span>
             </div>
         </div>
         </div>

@@ -263,6 +263,11 @@
   gap: 1rem;
 }
 
+.userRole {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
 .iconBtn {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);

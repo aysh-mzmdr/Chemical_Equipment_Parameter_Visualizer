@@ -32,7 +32,10 @@ def login(request):
             'user':{
                 'username':user.username,
                 'first_name':user.first_name,
-                'last_name':user.last_name
+                'last_name':user.last_name,
+                'email':user.email,
+                'role':user.profile.role,
+                'company':user.profile.company
             }
         },status=status.HTTP_200_OK)
     return Response(status=status.HTTP_403_FORBIDDEN)

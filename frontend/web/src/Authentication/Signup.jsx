@@ -13,7 +13,9 @@ import {
   ArrowLeft,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  Building2,
+  UserStar
 } from 'lucide-react';
 
 const Signup = () => {
@@ -35,6 +37,8 @@ const Signup = () => {
   const[confirmPassword,setConfirmPassword] = useState("");
   const[firstName,setFirstName] = useState("");
   const[lastName,setLastName] = useState("");
+  const[role,setRole] = useState("");
+  const[company,setCompany] = useState("");
 
   const handleSubmit = async(e) => {
     e.preventDefault()
@@ -53,7 +57,9 @@ const Signup = () => {
           password:password,
           first_name:firstName,
           last_name:lastName,
-          email:email
+          email:email,
+          role:role,
+          company:company
         })
       })
       if(response.status===201)
@@ -142,6 +148,38 @@ const Signup = () => {
                 name="email"
                 placeholder="example@company.com"
                 onChange={(e) => setEmail(e.target.value)}
+                className={styles.input}
+                required
+              />
+            </div>
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label htmlFor="email" className={styles.label}>Company</label>
+            <div className={styles.inputWrapper}>
+              <Building2 className={styles.fieldIcon} size={18} />
+              <input
+                type="text"
+                id="company"
+                name="company"
+                placeholder="Xyz Private Limited"
+                onChange={(e) => setCompany(e.target.value)}
+                className={styles.input}
+                required
+              />
+            </div>
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label htmlFor="email" className={styles.label}>Role</label>
+            <div className={styles.inputWrapper}>
+              <UserStar className={styles.fieldIcon} size={18} />
+              <input
+                type="text"
+                id="role"
+                name="role"
+                placeholder="Xyz Engineer"
+                onChange={(e) => setRole(e.target.value)}
                 className={styles.input}
                 required
               />
