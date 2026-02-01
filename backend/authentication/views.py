@@ -50,14 +50,15 @@ def logout(request):
 @permission_classes([IsAuthenticated])
 def update(request):
     user=request.user
-    newUser=user=authenticate(username=request.data.get('username'),password=request.data.get('password'))
-    if user is newUser:
+    if user.check_password(request.data.get('currentPassword')):
         user.username=request.data.get('email')
         user.first_name=request.data.get('first_name')
         user.last_name=request.data.get('last_name')
         user.email=request.data.get('email')
         user.profile.role=request.data.get('role')
         user.profile.company=request.data.get('company')
+        if request.data.get('newPassword') != '':
+            user.set_password(request.data.get('newPassword'))
         user.save()
         user.profile.save()
         return Response(status=status.HTTP_202_ACCEPTED)

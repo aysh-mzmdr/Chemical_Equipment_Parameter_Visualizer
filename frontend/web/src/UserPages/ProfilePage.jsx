@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './Profile.module.css';
 import { 
   User, 
@@ -9,10 +9,10 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-const ProfilePage = ({user}) => {
+const ProfilePage = () => {
   
   const [isEditing, setIsEditing] = useState(false);
-  
+  const[user,setUser]=useState(JSON.parse(localStorage.getItem('userData')))
   // Simulated initial user data
   const [userData, setUserData] = useState({
     first_name: user.first_name,
@@ -24,6 +24,7 @@ const ProfilePage = ({user}) => {
     currentPassword: ''  // Required to save
   });
 
+  const[submit,setSubmit]=useState(false)
   const [formData, setFormData] = useState(userData);
 
   const handleEditToggle = () => {
@@ -44,21 +45,21 @@ const ProfilePage = ({user}) => {
     e.preventDefault();
     const token=localStorage.getItem("userToken")
     try{
-      const response = await fetch(`http://127.0.0.1:8000/update`,{
+      const response = await fetch(`http://127.0.0.1:8000/update/`,{
         method:"PATCH",
         headers:{
           "Authorization":`Token ${token}`,
           "Content-Type":"application/json"
         },
         body:JSON.stringify({
-          username:email,
-          first_name:first_name,
-          last_name:last_name,
-          role:role,
-          company:company,
-          email:email,
-          newPassword:newPassword,
-          currentPassword:currentPassword
+          username:formData.email,
+          first_name:formData.first_name,
+          last_name:formData.last_name,
+          role:formData.role,
+          company:formData.company,
+          email:formData.email,
+          newPassword:formData.newPassword,
+          currentPassword:formData.currentPassword
         })
       })
       if(response.status===401)
@@ -72,15 +73,17 @@ const ProfilePage = ({user}) => {
       alert("Please enter your Current Password to confirm changes.");
       return;
     }
-
-    // Success Update
-    setUserData({
-      ...formData, 
-      currentPassword: '', // Clear security fields after save
-      newPassword: ''
-    });
+    setFormData({...formData,currentPassword:'',newPassword:''})
+    setSubmit(!submit)
     setIsEditing(false);
   };
+
+  useEffect(() => {
+    const {currentPassword,newPassword,...data}=formData
+    setUserData(data)
+    localStorage.setItem("userData",JSON.stringify(data));
+    setUser(data)
+  },[submit])
 
   return (
     <div className={styles.container}>

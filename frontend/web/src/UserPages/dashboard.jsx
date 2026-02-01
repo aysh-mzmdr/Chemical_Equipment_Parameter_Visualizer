@@ -43,7 +43,7 @@ const Dashboard = () => {
     }, []);
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
+    const user=JSON.parse(localStorage.getItem("userData"))
     const navigate = useNavigate();
 
     const handleLogout = async() => {
@@ -70,8 +70,6 @@ const Dashboard = () => {
         }
     }
 
-    const user = JSON.parse(localStorage.getItem("userData")) 
-
     const renderContent = () => {
         switch (activeTab) {
         case 'Dashboard':
@@ -79,7 +77,7 @@ const Dashboard = () => {
         case 'History':
             return <HistoryPage title="History Log" icon={<History size={48} />} />;
         case 'Profile':
-            return <ProfilePage user={user} icon={<UserCircle size={48} />} />;
+            return <ProfilePage icon={<UserCircle size={48} />} />;
         default:
             return <WorkspacePage />;
         }
