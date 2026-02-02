@@ -9,7 +9,7 @@ import Statistics from "../Components/Statistics"
 const WorkspacePage = () => {
 
   // Register ChartJS components
-
+  const token = localStorage.getItem('userToken')
   const fileInputRef = useRef(null);
 
   const handleBtnClick = () => {
@@ -38,6 +38,9 @@ const WorkspacePage = () => {
     try {
       const response = await fetch('http://127.0.0.1:8000/upload/', {
         method: 'POST',
+        headers:{
+          "Authorization":`Token ${token}`
+        },
         body: formData, // No headers needed, browser sets multipart automatically
       });
       
@@ -64,6 +67,7 @@ const WorkspacePage = () => {
                 'rgba(244, 114, 182, 1)',
               ],
               borderWidth: 1,
+              barThickness:50
             },
           ],
         });
@@ -100,7 +104,12 @@ const WorkspacePage = () => {
           Select File <ChevronRight size={16} />
         </button>
       </div>
-      <Statistics stats={stats} chartData={chartData}/>
+      <div className={styles.historyCard}>
+        <Statistics 
+          stats={stats} 
+          chartData={chartData} 
+        />
+      </div>
     </div>
   )
 }

@@ -14,12 +14,12 @@ const Statistcs = ({stats,chartData}) => {
     ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
     return(
-        <>
+        <div>
         {/* Placeholder for where graphs will go */}
                 <div className={styles.statsGrid}>
                 <div className={styles.statCard}>
                     <h4>Total Units</h4>
-                    <div className={styles.statValue}>{stats.total_count}</div>
+                    <div className={styles.statValue}>{stats.total_count}{console.log(stats.created_at)}</div>
                 </div>
                 <div className={styles.statCard}>
                     <h4>Avg Pressure</h4>
@@ -33,7 +33,7 @@ const Statistcs = ({stats,chartData}) => {
 
             {/* 2. Chart Section */}
             {chartData && (
-                <div className={styles.chartContainer} style={{ height: '300px', marginTop: '2rem' }}>
+                <div className={styles.chartContainer} style={{ height: '300px', marginTop: '2rem'}}>
                 <h3>Equipment Distribution</h3>
                 <Bar data={chartData} options={{ responsive: true, maintainAspectRatio: false,scales: 
                     {x:
@@ -56,7 +56,7 @@ const Statistcs = ({stats,chartData}) => {
                 />
                 </div>
             )}
-        </>
+        </div>
     )
 }
 

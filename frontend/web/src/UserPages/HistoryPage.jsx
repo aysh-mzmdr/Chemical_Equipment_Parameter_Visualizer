@@ -1,13 +1,70 @@
+import { useEffect, useState } from 'react';
 import styles from './Dashboard.module.css';
+import Statistics from '../Components/Statistics';
 
 const HistoryPage = ({ title, icon }) => {
+  const token = localStorage.getItem('userToken')
+
+  const[info,setInfo]=useState(null)
+  
+  useEffect(() => {
+      fetch('http://127.0.0.1:8000/record/',{headers:{'Authorization': `Token ${token}`}})
+      .then(response => response.json())
+      .then(data => {setInfo(data.resultData);console.log(data.resultData)})
+      .catch(err => console.log(err))
+  },[])
 
   return(
-    <div className={styles.placeholderState}>
-      <div className={styles.placeholderIcon}>{icon}</div>
-      <h3>{title}</h3>
-      <p>This module is currently under development.</p>
-    </div>
+    <div className={styles.container} style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"250px"}}>
+      {info && info.map((record, index) => {
+        // 1. Prepare the chart data structure (if your component needs the formatted object)
+        const formattedChartData = {
+          labels: record.distribution.labels,
+          datasets: [{
+            label: 'Equipment Count',
+            data: record.distribution.values,
+            backgroundColor: [
+                'rgba(56, 189, 248, 0.6)', // Cyan
+                'rgba(129, 140, 248, 0.6)', // Indigo
+                'rgba(244, 114, 182, 0.6)', // Pink
+              ],
+              borderColor: [
+                'rgba(56, 189, 248, 1)',
+                'rgba(129, 140, 248, 1)',
+                'rgba(244, 114, 182, 1)',
+              ],
+              borderWidth: 1,
+              barThickness:50,
+          }]
+        };
+
+        const formatDate = (isoString) => {
+          const date = new Date(isoString);
+          return {
+            date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+          };
+        };
+        const { date, time } = formatDate(record.created_at);
+        // 2. Explicit Return
+        return (
+          <div key={index} className={styles.historyCard}>
+            <h1 className={styles.indexBadge}>
+              <span style={{ fontSize: '0.8em'}}>{date}</span>  
+              <span style={{ fontSize: '0.8em', opacity: 0.7, marginLeft: '10px' }}>
+                  {time}
+              </span>
+            </h1>
+            <Statistics 
+              stats={record} 
+              chartData={formattedChartData} 
+            />
+          </div>
+        );
+      })}
+    
+    {(!info || info.length === 0) && <h1>No History</h1>}
+  </div>
   )
 }
 

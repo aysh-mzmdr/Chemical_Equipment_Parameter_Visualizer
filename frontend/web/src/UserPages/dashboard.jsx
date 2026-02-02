@@ -75,9 +75,9 @@ const Dashboard = () => {
         case 'Dashboard':
             return <WorkspacePage/>;
         case 'History':
-            return <HistoryPage title="History Log" icon={<History size={48} />} />;
+            return <HistoryPage/>;
         case 'Profile':
-            return <ProfilePage icon={<UserCircle size={48} />} />;
+            return <ProfilePage/>;
         default:
             return <WorkspacePage />;
         }
@@ -161,7 +161,8 @@ const Dashboard = () => {
       {isSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsSidebarOpen(false)} />}
 
       {/* --- Main Content --- */}
-        <main className={styles.mainContent}>
+       <main className={styles.mainContent} style={{ marginLeft: !isSidebarOpen ? '0px' : '260px' }}
+>
             <header className={styles.topHeader}>
                 <button className={styles.hamburgerBtn} onClick={toggleSidebar}>
                     <Menu size={24} />
