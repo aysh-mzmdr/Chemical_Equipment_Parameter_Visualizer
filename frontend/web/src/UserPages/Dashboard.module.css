@@ -46,9 +46,8 @@
 }
 
 .indexBadge {
-  font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   opacity: 0.5;
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
@@ -59,12 +58,23 @@
 }
 
 .indexBadge span {
-  font-size: 0.8rem;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
+.dateText {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary); /* Auto-switches based on theme */
+}
+
+/* Explicitly set the Time color */
+.timeText {
+  font-size: 17px;
+  margin-left: 10px;
+  color: var(--text-secondary); /* Grey in light mode, Light Grey in dark mode */
+}
 /* --- 2. Main Layout --- */
 .container {
   display: flex;
@@ -439,6 +449,38 @@
 .placeholderIcon {
   margin-bottom: 1.5rem;
   color: var(--border-color);
+}
+
+/* --- Download Button --- */
+.downloadBtn {
+  margin-top: 75px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  
+  /* Glassy Blue Background */
+  background: rgba(56, 189, 248, 0.1); 
+  color: var(--accent-color); /* Cyan/Blue text */
+  border: 1px solid var(--accent-color);
+  
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.05); /* Faint initial glow */
+}
+
+.downloadBtn:hover {
+  background: var(--accent-color); /* Fill with color */
+  color: #fff; /* White text */
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); /* Strong neon glow */
+  transform: translateY(-2px); /* Slight lift */
+}
+
+.downloadBtn:active {
+  transform: scale(0.98); /* Click press effect */
 }
 
 /* Mobile Responsive */

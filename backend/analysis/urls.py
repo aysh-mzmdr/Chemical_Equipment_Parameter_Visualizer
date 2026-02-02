@@ -3,5 +3,6 @@ from .views import *
 
 urlpatterns = [
     path('upload/', EquipmentUploadView.as_view(), name='upload-csv'),
-    path('record/',record,name='record')
+    path('record/',record,name='record'),
+    path('download/',download,name='download')
 ]

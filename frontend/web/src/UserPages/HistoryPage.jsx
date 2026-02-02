@@ -10,7 +10,7 @@ const HistoryPage = ({ title, icon }) => {
   useEffect(() => {
       fetch('http://127.0.0.1:8000/record/',{headers:{'Authorization': `Token ${token}`}})
       .then(response => response.json())
-      .then(data => {setInfo(data.resultData);console.log(data.resultData)})
+      .then(data => setInfo(data.resultData))
       .catch(err => console.log(err))
   },[])
 
@@ -50,10 +50,8 @@ const HistoryPage = ({ title, icon }) => {
         return (
           <div key={index} className={styles.historyCard}>
             <h1 className={styles.indexBadge}>
-              <span style={{ fontSize: '0.8em'}}>{date}</span>  
-              <span style={{ fontSize: '0.8em', opacity: 0.7, marginLeft: '10px' }}>
-                  {time}
-              </span>
+              <span className={styles.dateText}>{date}</span>  
+              <span className={styles.timeText}>{time}</span>
             </h1>
             <Statistics 
               stats={record} 
