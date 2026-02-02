@@ -104,7 +104,7 @@ const WorkspacePage = () => {
           Select File <ChevronRight size={16} />
         </button>
       </div>
-      <div className={styles.historyCard}>
+      <div className={styles.historyCard} style={{paddingTop:"25px"}}>
         <Statistics 
           stats={stats} 
           chartData={chartData} 
