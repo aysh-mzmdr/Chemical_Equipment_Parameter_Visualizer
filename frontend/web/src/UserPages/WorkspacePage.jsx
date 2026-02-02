@@ -110,6 +110,9 @@ const WorkspacePage = () => {
           chartData={chartData} 
         />
       </div>
+      <p className={styles.securityNote}>
+        🔒 <strong>Note:</strong> Downloaded file would be password protected. Use your <strong>email</strong> to open.
+      </p>
     </div>
   )
 }

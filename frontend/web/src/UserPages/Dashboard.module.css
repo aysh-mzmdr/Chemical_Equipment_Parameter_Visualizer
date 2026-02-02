@@ -75,6 +75,19 @@
   margin-left: 10px;
   color: var(--text-secondary); /* Grey in light mode, Light Grey in dark mode */
 }
+
+.securityNote {
+  font-size: 0.75rem;       /* Small "fine print" size */
+  color: var(--text-secondary); /* Grey color (auto-adjusts for light mode) */
+  margin-top: 0.75rem;      /* Space between button and text */
+  opacity: 0.8;             /* Slightly faded to keep it subtle */
+  text-align: center;
+}
+
+.securityNote strong {
+  color: var(--text-primary); /* Highlights key words in brighter color */
+  font-weight: 600;
+}
 /* --- 2. Main Layout --- */
 .container {
   display: flex;
