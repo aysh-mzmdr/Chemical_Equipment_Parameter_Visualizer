@@ -1,9 +1,10 @@
 from django.urls import path
-from . import views
+from .views import *
 
 urlpatterns = [
-    path('signup/',views.signup,name='signup'),
-    path('login/',views.login,name='login'),
-    path('logout/',views.logout,name='logout'),
-    path('update/',views.update,name='update')
+    path('signup/',signup,name='signup'),
+    path('login/',login,name='login'),
+    path('logout/',logout,name='logout'),
+    path('update/',update,name='update'),
+    path('upload/', EquipmentUploadView.as_view(), name='upload-csv'),
 ]
