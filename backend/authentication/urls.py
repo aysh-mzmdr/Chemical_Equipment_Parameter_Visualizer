@@ -6,5 +6,4 @@ urlpatterns = [
     path('login/',login,name='login'),
     path('logout/',logout,name='logout'),
     path('update/',update,name='update'),
-    path('upload/', EquipmentUploadView.as_view(), name='upload-csv'),
 ]
