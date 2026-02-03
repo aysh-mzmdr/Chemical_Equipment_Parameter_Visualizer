@@ -30,7 +30,7 @@ Before you begin, ensure you have the following installed on your machine:
 
 Cloning the repository:
 ```bash
-git clone https://github.com/aysh-mzmdr/Chemical_Equipment_Parameter_Visualizer
+git clone https://github.com/aysh-mzmdr/Chemical_Equipment_Parameter_Visualizer.git
 
 cd Chemical_Equipment_Parameter_Visualizer
 ```
