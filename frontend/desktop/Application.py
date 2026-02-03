@@ -2,13 +2,19 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QLineEdit, QPushButton, QFrame, QStackedWidget, 
-    QGraphicsDropShadowEffect, QScrollArea
+    QGraphicsDropShadowEffect, QScrollArea, QGridLayout
 )
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime
 from PyQt5.QtGui import QColor, QFont
 import qtawesome as qta
 from StyleSheetManager import *
 from Thread import APIWorker
+
+import matplotlib
+matplotlib.use('Qt5Agg') # Tell matplotlib to work with PyQt5
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 class LoginWindow(QMainWindow,StyleSheetManager):
     
@@ -366,27 +372,119 @@ class DashboardWindow(QMainWindow):
         return page
 
     def create_history_page(self, title, icon_name):
-        """Creates a dummy placeholder page"""
         page = QWidget()
-        layout = QVBoxLayout(page)
-        layout.setAlignment(Qt.AlignCenter)
-    
-        icon = QLabel()
-        icon.setPixmap(qta.icon(icon_name, color="#94a3b8").pixmap(64, 64))
-        icon.setAlignment(Qt.AlignCenter)
+        page_layout = QVBoxLayout(page)
+        page_layout.setContentsMargins(0, 0, 0, 0)
 
-        lbl = QLabel(f"{title} Module")
-        lbl.setObjectName("Title")
-        lbl.setAlignment(Qt.AlignCenter)
+        # 1. Scroll Area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setStyleSheet("background: transparent;")
 
-        sub = QLabel("This module is currently under development.")
-        sub.setObjectName("Subtitle")
-        sub.setAlignment(Qt.AlignCenter)
+        # 2. Content Container
+        self.history_content_widget = QWidget()
+        
+        # ✅ Make the layout a class variable so we can access it later
+        self.history_grid = QGridLayout(self.history_content_widget)
+        self.history_grid.setContentsMargins(30, 30, 30, 30)
+        self.history_grid.setSpacing(30)
+        self.history_grid.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
-        layout.addWidget(icon)
-        layout.addWidget(lbl)
-        layout.addWidget(sub)
+        # 3. Add a "Loading" Label initially
+        self.loading_lbl = QLabel("Loading History...")
+        self.loading_lbl.setStyleSheet("color: #94a3b8; font-size: 16px;")
+        self.history_grid.addWidget(self.loading_lbl, 0, 0)
+
+        scroll.setWidget(self.history_content_widget)
+        page_layout.addWidget(scroll)
+
+        # Add a refresh button to the top (Optional but useful)
+        refresh_btn = QPushButton(" Refresh")
+        refresh_btn.setIcon(qta.icon('fa5s.sync-alt', color=THEMES[self.current_theme]['text_secondary']))
+        refresh_btn.setStyleSheet("background: transparent; border: none; text-align: right; padding: 10px;")
+        refresh_btn.setCursor(Qt.PointingHandCursor)
+        refresh_btn.clicked.connect(self.fetch_history)
+        
+        # Add refresh button to the very top of page layout
+        page_layout.insertWidget(0, refresh_btn, 0, Qt.AlignRight)
+
         return page
+    
+    def fetch_history(self):
+        """Calls the Django API to get records"""
+        if not self.token:
+            print("No token found")
+            return
+
+        print("Fetching history...")
+        
+        # URL matching your Django view name 'record'
+        # Assuming your urls.py maps it like path('record/', views.record)
+        url = "http://127.0.0.1:8000/record/" 
+        
+        headers = {
+            "Authorization": f"Token {self.token}",
+            "Content-Type": "application/json"
+        }
+
+        # Reuse your APIWorker (Method GET)
+        self.worker = APIWorker(url, method="GET", headers=headers)
+        self.worker.success.connect(self.on_history_success)
+        self.worker.error.connect(lambda e: print(f"History Fetch Error: {e}"))
+        self.worker.start()
+
+    def on_history_success(self, response):
+        """Receives data from Django and rebuilds the grid"""
+        # 1. Extract the list from the response
+        history_list = response.get("resultData")
+        
+        # 2. Clear the current grid
+        # We must loop backwards and delete widgets to clear a layout in PyQt
+        while self.history_grid.count():
+            item = self.history_grid.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        # 3. Check if empty
+        if not history_list:
+            # Show "No History" Icon
+            empty_layout = QVBoxLayout()
+            icon = QLabel()
+            icon.setPixmap(qta.icon('fa5s.box-open', color="#94a3b8").pixmap(64, 64))
+            icon.setAlignment(Qt.AlignCenter)
+            msg = QLabel("No History Available")
+            msg.setStyleSheet("color: #94a3b8; font-size: 18px; font-weight: bold;")
+            msg.setAlignment(Qt.AlignCenter)
+            
+            # Create a container widget for this empty state
+            empty_container = QWidget()
+            empty_l = QVBoxLayout(empty_container)
+            empty_l.addWidget(icon)
+            empty_l.addWidget(msg)
+            
+            self.history_grid.addWidget(empty_container, 0, 0)
+            return
+
+        # 4. Populate Grid with Data
+        COLUMNS = 2
+        row, col = 0, 0
+        t_colors = THEMES[self.current_theme]
+
+        for record in history_list:
+            # Create Card (uses the class we made earlier)
+            try:
+                card = HistoryCard(record, t_colors)
+                self.history_grid.addWidget(card, row, col)
+                
+                # Grid Logic
+                col += 1
+                if col >= COLUMNS:
+                    col = 0
+                    row += 1
+            except Exception as e:
+                print(f"Error creating card: {e}")
 
     def create_profile_page(self):
         """Creates the Full Profile Edit Form"""
@@ -673,6 +771,9 @@ class DashboardWindow(QMainWindow):
             
             self.style().unpolish(btn)
             self.style().polish(btn)
+            
+        if index == 1:
+            self.fetch_history()
 
     def toggle_sidebar(self):
         width = 0 if self.is_sidebar_open else 260
@@ -706,6 +807,94 @@ class DashboardWindow(QMainWindow):
         self.login_win.apply_theme()
         self.login_win.show()
         self.close()
+
+class MplBarChart(FigureCanvas):
+    """
+    A Matplotlib Figure embedded in a PyQt5 Canvas.
+    Matches the style of the React 'Statistics' component.
+    """
+    def __init__(self, labels, values, theme_colors, width=5, height=4, dpi=100):
+        # 1. Setup Figure
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.fig.patch.set_facecolor('none') # Transparent background
+        super().__init__(self.fig)
+        
+        # 2. Setup Axes
+        self.axes = self.fig.add_subplot(111)
+        self.axes.set_facecolor('none')
+        
+        # 3. Colors (Matching your React code: Cyan, Indigo, Pink)
+        bar_colors = ['#38bdf8', '#818cf8', '#f472b6']
+        
+        # 4. Plot Data
+        bars = self.axes.bar(labels, values, color=bar_colors, alpha=0.7, width=0.5)
+        
+        # 5. Styling (Make it look like a dashboard, not a scientific plot)
+        
+        # Remove top and right borders (spines)
+        self.axes.spines['top'].set_visible(False)
+        self.axes.spines['right'].set_visible(False)
+        self.axes.spines['left'].set_visible(False) # Optional: Remove y-axis line
+        self.axes.spines['bottom'].set_color(theme_colors['text_secondary'])
+        
+        # Style Ticks
+        self.axes.tick_params(axis='x', colors=theme_colors['text_secondary'])
+        self.axes.tick_params(axis='y', colors=theme_colors['text_secondary'])
+        
+        # Add Value Labels on top of bars
+        for bar in bars:
+            height = bar.get_height()
+            self.axes.text(
+                bar.get_x() + bar.get_width()/2., 
+                height, 
+                f'{int(height)}',
+                ha='center', va='bottom', 
+                color=theme_colors['text_primary'],
+                fontsize=9
+            )
+        
+        # Tight layout to remove white margins
+        self.fig.tight_layout()
+
+class HistoryCard(QFrame):
+    def __init__(self, record, theme_colors):
+        super().__init__()
+        self.setObjectName("GlassCard")
+        self.setFixedSize(350, 320) # Slightly larger for the plot
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(15, 15, 15, 15)
+        
+        # --- Header (Date & Time) ---
+        dt = QDateTime.fromString(record['created_at'], Qt.ISODate)
+        header_layout = QHBoxLayout()
+        
+        date_lbl = QLabel(dt.toString("MMM d, yyyy"))
+        date_lbl.setStyleSheet(f"color: {theme_colors['text_primary']}; font-weight: bold; font-size: 16px;")
+        
+        time_lbl = QLabel(dt.toString("h:mm AP"))
+        time_lbl.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 13px;")
+        
+        header_layout.addWidget(date_lbl)
+        header_layout.addStretch()
+        header_layout.addWidget(time_lbl)
+        layout.addLayout(header_layout)
+        
+        # Divider
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setStyleSheet(f"background-color: {theme_colors['border']}; margin: 5px 0;")
+        layout.addWidget(line)
+
+        # --- Matplotlib Chart ---
+        labels = record['distribution']['labels']
+        values = record['distribution']['values']
+        
+        # ✅ Create the Matplotlib Canvas
+        # We pass width=3, height=2 to keep it compact inside the card
+        chart = MplBarChart(labels, values, theme_colors, width=3.2, height=2.2)
+        layout.addWidget(chart)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
