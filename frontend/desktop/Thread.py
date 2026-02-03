@@ -1,30 +1,41 @@
-import requests
 from PyQt5.QtCore import QThread, pyqtSignal
+import requests
 
 class APIWorker(QThread):
-    # Signals to update the UI from the background thread
     success = pyqtSignal(dict)
     error = pyqtSignal(str)
+    finished = pyqtSignal()
 
-    def __init__(self, url, data):
+    def __init__(self, url, data=None, method="POST", headers=None):
         super().__init__()
         self.url = url
         self.data = data
+        self.method = method
+        self.headers = headers or {}
 
     def run(self):
         try:
-            # This happens in the background
-            response = requests.post(self.url, json=self.data)
+            if self.method == "POST":
+                response = requests.post(self.url, json=self.data, headers=self.headers)
+            elif self.method == "PATCH":
+                response = requests.patch(self.url, json=self.data, headers=self.headers)
+            elif self.method == "GET":
+                response = requests.get(self.url, headers=self.headers)
             
-            if response.status_code == 200:
-                # Emit the JSON dictionary to the main thread
-                self.success.emit(response.json())
+            # Check for success
+            if 200 <= response.status_code < 300:
+                # Some endpoints (like 202 Accepted) might not return JSON
+                try:
+                    data = response.json()
+                except:
+                    data = {"message": "Success"} 
+                self.success.emit(data)
             else:
-                # Handle 401/403/500 errors
-                err_msg = response.json().get('error', 'Unknown Error')
-                self.error.emit(err_msg)
-                
+                self.error.emit(f"Error {response.status_code}: {response.text}")
+
         except requests.exceptions.ConnectionError:
-            self.error.emit("Failed to connect to server.")
+            self.error.emit("Connection failed. Check server.")
         except Exception as e:
             self.error.emit(str(e))
+        finally:
+            self.finished.emit()
