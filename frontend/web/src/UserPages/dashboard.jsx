@@ -1,8 +1,8 @@
 import ProfilePage from "./ProfilePage"
 import HistoryPage from "./HistoryPage"
 import WorkspacePage from "./WorkspacePage"
-
-import { useState, useEffect} from 'react';
+import { AppContext } from "../AppContext";
+import { useState, useEffect, useContext} from 'react';
 import styles from './Dashboard.module.css';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -20,17 +20,18 @@ import {
 const Dashboard = () => {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
-  
-    const [theme, setTheme] = useState('dark');
     const [activeTab, setActiveTab] = useState('Dashboard');
 
-    const toggleTheme = () => {
+    const {theme,setTheme} = useContext(AppContext)
+    
+      const toggleTheme = () => {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-    };
-
-    useEffect(() => {
+      };
+    
+      // Apply theme to the website
+      useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
-    }, [theme]);
+      }, [theme]);
 
 
     useEffect(() => {
