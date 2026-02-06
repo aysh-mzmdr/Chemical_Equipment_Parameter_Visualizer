@@ -79,18 +79,15 @@ const Signup = () => {
 
   return (
     <div className={styles.container}>
-      {/* Back Navigation */}
       <div className={styles.backLink} style={{cursor:"pointer",zIndex:"10"}} onClick={toHome}>
         <ArrowLeft size={20} />
         <span>Home</span>
       </div>
 
-      {/* Theme Toggle */}
       <button className={styles.themeToggle} onClick={toggleTheme} aria-label="Toggle Theme">
         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
       </button>
 
-      {/* Signup Card */}
       <div className={styles.signupCard}>
         <div className={styles.header}>
           <div className={styles.logoBadge}>

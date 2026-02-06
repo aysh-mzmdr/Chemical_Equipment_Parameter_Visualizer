@@ -17,16 +17,15 @@ const HistoryPage = ({ title, icon }) => {
   return(
     <div className={styles.container} style={{display:"flex",flexWrap:"wrap",justifyContent:"center",gap:"250px"}}>
       {info && info.map((record, index) => {
-        // 1. Prepare the chart data structure (if your component needs the formatted object)
         const formattedChartData = {
           labels: record.distribution.labels,
           datasets: [{
             label: 'Equipment Count',
             data: record.distribution.values,
             backgroundColor: [
-                'rgba(56, 189, 248, 0.6)', // Cyan
-                'rgba(129, 140, 248, 0.6)', // Indigo
-                'rgba(244, 114, 182, 0.6)', // Pink
+                'rgba(56, 189, 248, 0.6)',
+                'rgba(129, 140, 248, 0.6)',
+                'rgba(244, 114, 182, 0.6)',
               ],
               borderColor: [
                 'rgba(56, 189, 248, 1)',
@@ -46,7 +45,6 @@ const HistoryPage = ({ title, icon }) => {
           };
         };
         const { date, time } = formatDate(record.created_at);
-        // 2. Explicit Return
         return (
           <div key={index} className={styles.historyCard}>
             <h1 className={styles.indexBadge}>

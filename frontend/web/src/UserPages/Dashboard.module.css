@@ -1,4 +1,3 @@
-/* --- 1. Theme Variables (Consistent across app) --- */
 :root {
   --bg-primary: #020617; 
   --bg-secondary: #0f172a;
@@ -26,22 +25,20 @@
   --grid-color: rgba(148, 163, 184, 0.15); 
 }
 
-/* --- Add to styles.module.css --- */
-
 .historyCard {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 16px; /* Rounded corners match your theme */
+  border-radius: 16px;
   padding-inline: 50px;
   padding-bottom: 50px;
-  margin-block: 1rem; /* Spacing between cards */
+  margin-block: 1rem;
   transition: transform 0.2s;
   width:500px;
 
 }
 
 .historyCard:hover {
-  border-color: var(--accent-color); /* Glow effect on hover */
+  border-color: var(--accent-color);
   transform: translateY(-2px);
 }
 
@@ -66,29 +63,28 @@
 .dateText {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary); /* Auto-switches based on theme */
+  color: var(--text-primary);
 }
 
-/* Explicitly set the Time color */
 .timeText {
   font-size: 17px;
   margin-left: 10px;
-  color: var(--text-secondary); /* Grey in light mode, Light Grey in dark mode */
+  color: var(--text-secondary);
 }
 
 .securityNote {
-  font-size: 0.75rem;       /* Small "fine print" size */
-  color: var(--text-secondary); /* Grey color (auto-adjusts for light mode) */
-  margin-top: 0.75rem;      /* Space between button and text */
-  opacity: 0.8;             /* Slightly faded to keep it subtle */
+  font-size: 0.75rem;      
+  color: var(--text-secondary);
+  margin-top: 0.75rem;     
+  opacity: 0.8;             
   text-align: center;
 }
 
 .securityNote strong {
-  color: var(--text-primary); /* Highlights key words in brighter color */
+  color: var(--text-primary); 
   font-weight: 600;
 }
-/* --- 2. Main Layout --- */
+
 .container {
   display: flex;
   width: 100vw;
@@ -100,10 +96,9 @@
     linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   background-size: 40px 40px;
   font-family: 'Inter', sans-serif;
-  overflow: hidden; /* Prevent body scroll, handle inside main */
+  overflow: hidden;
 }
 
-/* --- 3. Sidebar Styles --- */
 .sidebar {
   position: fixed;
   width: 260px;
@@ -113,22 +108,19 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  flex-shrink: 0; /* Prevent sidebar from shrinking */
+  flex-shrink: 0;
   z-index: 50;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden; /* Hides content when width shrinks */
+  overflow: hidden;
   white-space: nowrap;
 }
 
-/* 2. Desktop Closed State */
-/* When closed, width becomes 0, effectively pulling it off screen */
 .sidebar.closed {
   width: 0;
   border: none;
   opacity: 0; 
 }
 
-/* 3. Hamburger Button (In Main Header) */
 .hamburgerBtn {
   background: transparent;
   border: none;
@@ -139,7 +131,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1rem; /* Space between btn and title */
+  margin-right: 1rem;
 }
 
 .hamburgerBtn:hover {
@@ -174,9 +166,8 @@
   color: var(--accent-color);
 }
 
-/* Navigation Menu */
 .navMenu {
-  flex: 1; /* Pushes footer down */
+  flex: 1;
   display: flex;
   flex-direction: column;
   padding: 1rem 1rem;
@@ -210,7 +201,6 @@
   font-weight: 600;
 }
 
-/* Vertical indicator line for active tab */
 .activeIndicator {
   position: absolute;
   right: 0;
@@ -222,7 +212,6 @@
   border-radius: 3px 0 0 3px;
 }
 
-/* Sidebar Footer */
 .sidebarFooter {
   padding: 1.5rem;
   display: flex;
@@ -257,11 +246,10 @@
 }
 
 .logoutBtn:hover {
-  color: #f43f5e; /* Warning Red */
+  color: #f43f5e;
   background: rgba(244, 63, 94, 0.1);
 }
 
-/* User Mini Profile */
 .userMiniProfile {
   display: flex;
   align-items: center;
@@ -297,13 +285,12 @@
   color: var(--text-primary);
 }
 
-/* --- 4. Main Content Styles --- */
 .mainContent {
   flex: 1;
   height:auto;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Scroll only inside here */
+  overflow-y: auto;
   position: relative;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -315,7 +302,7 @@
   padding: 1.5rem 2.5rem;
   display: flex;
   align-items: center;
-  background: rgba(var(--bg-primary), 0.8); /* Slight opacity */
+  background: rgba(var(--bg-primary), 0.8);
   backdrop-filter: blur(8px);
 }
 
@@ -367,15 +354,12 @@
   flex: 1;
 }
 
-/* --- 5. Workspace Components --- */
-
 .workspace {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-/* Upload Card (Placeholder) */
 .uploadCard {
   border: 2px dashed var(--border-color);
   background: var(--bg-secondary);
@@ -422,7 +406,6 @@
   cursor: pointer;
 }
 
-/* Empty Stats Grid */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -448,7 +431,6 @@
   100% { opacity: 0.6; }
 }
 
-/* Placeholder View */
 .placeholderState {
   display: flex;
   flex-direction: column;
@@ -464,16 +446,14 @@
   color: var(--border-color);
 }
 
-/* --- Download Button --- */
 .downloadBtn {
   margin-top: 75px;
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
   
-  /* Glassy Blue Background */
   background: rgba(56, 189, 248, 0.1); 
-  color: var(--accent-color); /* Cyan/Blue text */
+  color: var(--accent-color);
   border: 1px solid var(--accent-color);
   
   padding: 0.6rem 1.2rem;
@@ -482,24 +462,22 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.05); /* Faint initial glow */
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.05);
 }
 
 .downloadBtn:hover {
-  background: var(--accent-color); /* Fill with color */
-  color: #fff; /* White text */
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); /* Strong neon glow */
-  transform: translateY(-2px); /* Slight lift */
+  background: var(--accent-color);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+  transform: translateY(-2px);
 }
 
 .downloadBtn:active {
-  transform: scale(0.98); /* Click press effect */
+  transform: scale(0.98);
 }
 
-/* Mobile Responsive */
-
 .mobileCloseBtn {
-  display: none; /* Hidden on desktop */
+  display: none;
 }
 
 .mobileOverlay {
@@ -507,9 +485,8 @@
 }
 
 @media (max-width: 768px) {
-  /* 4. Mobile Layout */
   .container {
-    position: relative; /* Needed for absolute positioning context */
+    position: relative;
   }
 
   .sidebar {
@@ -517,19 +494,17 @@
     top: 0;
     left: 0;
     height: 100vh;
-    width: 280px; /* Slightly wider on mobile for touch targets */
+    width: 280px;
     box-shadow: 5px 0 15px rgba(0,0,0,0.1);
-    transform: translateX(0); /* Default Open State Position */
+    transform: translateX(0);
   }
 
-  /* Mobile Closed State: Slide to the left */
   .sidebar.closed {
-    width: 280px; /* Keep width fixed, just move it */
+    width: 280px;
     transform: translateX(-100%);
-    opacity: 1; /* Keep opacity, just move it */
+    opacity: 1;
   }
 
-  /* Mobile Close Button (X) */
   .mobileCloseBtn {
     display: flex;
     position: absolute;
@@ -541,7 +516,6 @@
     cursor: pointer;
   }
 
-  /* Dark Overlay for Mobile */
   .mobileOverlay {
     display: block;
     position: fixed;
@@ -551,7 +525,7 @@
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 40; /* Below sidebar, above content */
+    z-index: 40;
     animation: fadeIn 0.3s ease;
   }
 }
@@ -585,7 +559,7 @@
   }
   
   .mainContent {
-    margin-bottom: 80px; /* Space for bottom nav */
+    margin-bottom: 80px;
   }
 }
 

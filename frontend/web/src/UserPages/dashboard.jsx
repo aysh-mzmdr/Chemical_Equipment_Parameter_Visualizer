@@ -28,7 +28,6 @@ const Dashboard = () => {
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
       };
     
-      // Apply theme to the website
       useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
       }, [theme]);
@@ -94,7 +93,6 @@ const Dashboard = () => {
           <X size={24} />
         </button>
 
-        {/* Logo Section */}
         <div className={styles.logoSection}>
             <div className={styles.logoIconBox}>
                 <FlaskConical size={24} />
@@ -102,7 +100,6 @@ const Dashboard = () => {
             <span className={styles.logoText}>Chemical Equipment<br></br><span className={styles.highlight}> Parameter Visualizer</span></span>
         </div>
 
-        {/* Options */}
         <nav className={styles.navMenu}>
         <button 
             className={`${styles.navItem} ${activeTab === 'Dashboard' ? styles.active : ''}`}
@@ -132,7 +129,6 @@ const Dashboard = () => {
         </button>
         </nav>
 
-        {/* Sidebar Footer */}
         <div className={styles.sidebarFooter}>
         <div className={styles.divider} />
         
@@ -146,7 +142,6 @@ const Dashboard = () => {
             <span>Logout</span>
         </button>
 
-        {/* User Mini Profile */}
         <div className={styles.userMiniProfile}>
             <div className={styles.userAvatar}>{user.first_name[0]}{user.last_name[0]}</div>
             <div className={styles.userInfo}>
@@ -161,7 +156,7 @@ const Dashboard = () => {
       {/* Mobile Overlay (Click outside to close) */}
       {isSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsSidebarOpen(false)} />}
 
-      {/* --- Main Content --- */}
+      {/* Main Content */}
        <main className={styles.mainContent} style={{ marginLeft: !isSidebarOpen ? '0px' : '260px' }}
 >
             <header className={styles.topHeader}>

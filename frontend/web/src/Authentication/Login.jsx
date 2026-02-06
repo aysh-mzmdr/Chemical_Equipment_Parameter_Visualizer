@@ -67,13 +67,12 @@ const Login = () => {
         <button className={styles.themeToggle} onClick={toggleTheme}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
         </button>
-      {/* Back Navigation */}
+
       <div className={styles.backLink} onClick={toHome} style={{cursor:"pointer"}}>
         <ArrowLeft size={20} />
         <span>Home</span>
       </div>
 
-      {/* Login Card */}
       <div className={styles.loginCard}>
         <div className={styles.header}>
           <div className={styles.logoBadge}>

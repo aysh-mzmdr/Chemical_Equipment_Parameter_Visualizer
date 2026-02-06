@@ -22,9 +22,7 @@ class APIWorker(QThread):
             elif self.method == "GET":
                 response = requests.get(self.url, headers=self.headers)
             
-            # Check for success
             if 200 <= response.status_code < 300:
-                # Some endpoints (like 202 Accepted) might not return JSON
                 try:
                     data = response.json()
                 except:

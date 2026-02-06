@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QLineEdit, QPushButton, QFrame, QStackedWidget, 
-    QGraphicsDropShadowEffect, QScrollArea, QGridLayout
+    QGraphicsDropShadowEffect, QScrollArea, QGridLayout, QMessageBox
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime
 from PyQt5.QtGui import QColor, QFont
@@ -11,10 +11,10 @@ from StyleSheetManager import *
 from Thread import APIWorker
 
 import matplotlib
-matplotlib.use('Qt5Agg') # Tell matplotlib to work with PyQt5
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+
+matplotlib.use('Qt5Agg')
 
 class LoginWindow(QMainWindow,StyleSheetManager):
     
@@ -22,8 +22,8 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         super().__init__()
         self.current_theme = theme
         self.inputs = {}
-        self.token = None      # <--- Store Token
-        self.user_data = {}    # <--- Store User Data
+        self.token = None      
+        self.user_data = {}
         self.init_ui()
 
     def init_ui(self):
@@ -39,7 +39,7 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         main_layout = QVBoxLayout(self.central_widget)
         main_layout.setAlignment(Qt.AlignCenter)
 
-        # --- Theme Toggle (Top Right) ---
+        # Theme Toggle
         self.toggle_btn = QPushButton()
         self.toggle_btn.setIcon(qta.icon('fa5s.sun' if self.current_theme == 'dark' else 'fa5s.moon', color='#94a3b8'))
         self.toggle_btn.setFixedSize(40, 40)
@@ -47,14 +47,14 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         self.toggle_btn.setCursor(Qt.PointingHandCursor)
         self.toggle_btn.clicked.connect(self.toggle_theme)
         
-        # Absolute positioning for toggle isn't standard in layouts, so we use a top bar layout
+        # Positioning the toggle button
         top_bar = QHBoxLayout()
         top_bar.addStretch()
         top_bar.addWidget(self.toggle_btn)
         main_layout.addLayout(top_bar)
         main_layout.addStretch()
 
-        # --- Login Card ---
+        # Login Card
         self.card = QFrame()
         self.card.setObjectName("GlassCard")
         self.card.setFixedSize(700,600)
@@ -122,34 +122,28 @@ class LoginWindow(QMainWindow,StyleSheetManager):
 
     def toggle_theme(self):
         self.current_theme = 'light' if self.current_theme == 'dark' else 'dark'
-        # Update Icon
+        
         icon_name = 'fa5s.moon' if self.current_theme == 'light' else 'fa5s.sun'
         self.toggle_btn.setIcon(qta.icon(icon_name, color='#94a3b8'))
         
-        # Update Logo Color
-        # Note: In a real app, you'd keep a reference to the logo label to update it efficiently
         self.apply_theme()
 
     def apply_theme(self):
         self.setStyleSheet(StyleSheetManager.get_sheet(self.current_theme))
 
     def handle_login(self):
-        # 1. Get data from inputs
+        
         email = self.email_input.text()
         password = self.pass_input.text()
         
-        # 2. Disable button to prevent double-clicks
         self.login_btn.setEnabled(False)
         self.login_btn.setText("Logging in...")
 
-        # 3. Setup the API URL
         url = "http://127.0.0.1:8000/login/"
         data = {"username": email, "password": password}
 
-        # 4. Initialize and start the Worker
         self.worker = APIWorker(url, data)
         
-        # Connect signals to slots (functions)
         self.worker.success.connect(self.on_login_success)
         self.worker.error.connect(self.on_login_error)
         self.worker.finished.connect(self.on_request_finished)
@@ -159,30 +153,20 @@ class LoginWindow(QMainWindow,StyleSheetManager):
     def on_login_success(self, response_data):
         print("Login Success!")
         
-        # 1. Initialize Dashboard
         self.dashboard = DashboardWindow(self.current_theme)
-        
-        # 2. Pass Token AND User Data
-        # Assuming your Django Login returns: 
-        # { 'token': '...', 'user': {'first_name': '...', 'company': '...'} }
+
         self.dashboard.token = response_data.get('token')
         self.dashboard.user_data = response_data.get('user', {}) 
         
-        # 3. Refresh the dashboard UI with this new data
         self.dashboard.refresh_profile_ui() 
 
         self.dashboard.show()
         self.close()
 
     def on_login_error(self, error_message):
-        # Show error in a message box or label
-        print(f"Login Failed: {error_message}")
-        # In a real app, use QMessageBox.warning(self, "Error", error_message)
-        
-        # Reset button text logic is handled in on_request_finished
+        QMessageBox.warning(self, "Error", error_message)
 
     def on_request_finished(self):
-        # Re-enable the button regardless of success/failure
         self.login_btn.setEnabled(True)
         self.login_btn.setText("Sign In to Console")
 
@@ -197,7 +181,7 @@ class DashboardWindow(QMainWindow):
         super().__init__()
         self.current_theme = theme
         self.is_sidebar_open = True
-        self.inputs = {} # Store form inputs here
+        self.inputs = {}
         self.init_ui()
 
     def init_ui(self):
@@ -213,7 +197,7 @@ class DashboardWindow(QMainWindow):
         self.main_h_layout.setContentsMargins(0, 0, 0, 0)
         self.main_h_layout.setSpacing(0)
 
-        # --- Sidebar ---
+        # Sidebar
         self.sidebar = QFrame()
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(260)
@@ -234,7 +218,7 @@ class DashboardWindow(QMainWindow):
         sidebar_layout.addLayout(logo_box)
         sidebar_layout.addSpacing(30)
 
-        # --- Navigation Menu Logic ---
+        # Navigation Menu Logic
         self.nav_buttons = [] 
         
         menus = [
@@ -265,7 +249,7 @@ class DashboardWindow(QMainWindow):
 
         self.main_h_layout.addWidget(self.sidebar)
 
-        # --- Main Content Area ---
+        # Main Content Area
         content_area = QWidget()
         content_layout = QVBoxLayout(content_area)
         content_layout.setContentsMargins(30, 30, 30, 30)
@@ -296,19 +280,18 @@ class DashboardWindow(QMainWindow):
 
         content_layout.addLayout(header_layout)
 
-        # --- Stacked Widget (Pages) ---
+        # Stacked Widget
         self.stack = QStackedWidget()
         
-        # Page 0: Workspace
+        # Workspace Page
         workspace_page = self.create_workspace_page()
         self.stack.addWidget(workspace_page)
         
-        # Page 1: History (Placeholder)
+        # History Page
         history_page = self.create_history_page("History Log", "fa5s.history")
         self.stack.addWidget(history_page)
 
-        # Page 2: Profile (Full Form)
-        # ✅ FIX: Calling the correct method name (snake_case)
+        # Profile Page
         profile_page = self.create_profile_page() 
         self.stack.addWidget(profile_page)
 
@@ -318,25 +301,18 @@ class DashboardWindow(QMainWindow):
         self.switch_tab(0)
         self.apply_theme()
 
-    # ---------------------------------------------------------
-    # PAGE CREATION HELPERS
-    # ---------------------------------------------------------
     def refresh_profile_ui(self):
-        """Fills the inputs with data passed from Login"""
+
         if not self.user_data:
             return
 
-        # Update Header Labels
         full_name = f"{self.user_data.get('first_name', '')} {self.user_data.get('last_name', '')}"
         self.name_lbl.setText(full_name)
         self.role_lbl.setText(self.user_data.get('role', 'User'))
 
-        # Update Input Fields (Safe get in case key is missing)
         self.inputs['first_name'].setText(self.user_data.get('first_name', ''))
         self.inputs['last_name'].setText(self.user_data.get('last_name', ''))
-        self.inputs['email'].setText(self.user_data.get('email', '')) # Django uses username/email
-        # Note: Your Django view expects 'company' and 'role' inside a profile relation.
-        # Ensure your Login response sends them flattened or adjust here.
+        self.inputs['email'].setText(self.user_data.get('email', ''))
         self.inputs['company'].setText(self.user_data.get('company', ''))
         self.inputs['role'].setText(self.user_data.get('role', ''))
 
@@ -385,13 +361,11 @@ class DashboardWindow(QMainWindow):
         # 2. Content Container
         self.history_content_widget = QWidget()
         
-        # ✅ Make the layout a class variable so we can access it later
         self.history_grid = QGridLayout(self.history_content_widget)
         self.history_grid.setContentsMargins(30, 30, 30, 30)
         self.history_grid.setSpacing(30)
         self.history_grid.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
 
-        # 3. Add a "Loading" Label initially
         self.loading_lbl = QLabel("Loading History...")
         self.loading_lbl.setStyleSheet("color: #94a3b8; font-size: 16px;")
         self.history_grid.addWidget(self.loading_lbl, 0, 0)
@@ -399,28 +373,23 @@ class DashboardWindow(QMainWindow):
         scroll.setWidget(self.history_content_widget)
         page_layout.addWidget(scroll)
 
-        # Add a refresh button to the top (Optional but useful)
         refresh_btn = QPushButton(" Refresh")
         refresh_btn.setIcon(qta.icon('fa5s.sync-alt', color=THEMES[self.current_theme]['text_secondary']))
         refresh_btn.setStyleSheet("background: transparent; border: none; text-align: right; padding: 10px;")
         refresh_btn.setCursor(Qt.PointingHandCursor)
         refresh_btn.clicked.connect(self.fetch_history)
         
-        # Add refresh button to the very top of page layout
         page_layout.insertWidget(0, refresh_btn, 0, Qt.AlignRight)
 
         return page
     
     def fetch_history(self):
-        """Calls the Django API to get records"""
         if not self.token:
             print("No token found")
             return
 
         print("Fetching history...")
         
-        # URL matching your Django view name 'record'
-        # Assuming your urls.py maps it like path('record/', views.record)
         url = "http://127.0.0.1:8000/record/" 
         
         headers = {
@@ -428,29 +397,22 @@ class DashboardWindow(QMainWindow):
             "Content-Type": "application/json"
         }
 
-        # Reuse your APIWorker (Method GET)
         self.worker = APIWorker(url, method="GET", headers=headers)
         self.worker.success.connect(self.on_history_success)
         self.worker.error.connect(lambda e: print(f"History Fetch Error: {e}"))
         self.worker.start()
 
     def on_history_success(self, response):
-        """Receives data from Django and rebuilds the grid"""
-        # 1. Extract the list from the response
         history_list = response.get("resultData")
         
-        # 2. Clear the current grid
-        # We must loop backwards and delete widgets to clear a layout in PyQt
         while self.history_grid.count():
             item = self.history_grid.takeAt(0)
             widget = item.widget()
             if widget:
                 widget.deleteLater()
 
-        # 3. Check if empty
         if not history_list:
-            # Show "No History" Icon
-            empty_layout = QVBoxLayout()
+            #empty_layout = QVBoxLayout()
             icon = QLabel()
             icon.setPixmap(qta.icon('fa5s.box-open', color="#94a3b8").pixmap(64, 64))
             icon.setAlignment(Qt.AlignCenter)
@@ -458,7 +420,6 @@ class DashboardWindow(QMainWindow):
             msg.setStyleSheet("color: #94a3b8; font-size: 18px; font-weight: bold;")
             msg.setAlignment(Qt.AlignCenter)
             
-            # Create a container widget for this empty state
             empty_container = QWidget()
             empty_l = QVBoxLayout(empty_container)
             empty_l.addWidget(icon)
@@ -467,18 +428,15 @@ class DashboardWindow(QMainWindow):
             self.history_grid.addWidget(empty_container, 0, 0)
             return
 
-        # 4. Populate Grid with Data
         COLUMNS = 2
         row, col = 0, 0
         t_colors = THEMES[self.current_theme]
 
         for record in history_list:
-            # Create Card (uses the class we made earlier)
             try:
                 card = HistoryCard(record, t_colors)
                 self.history_grid.addWidget(card, row, col)
                 
-                # Grid Logic
                 col += 1
                 if col >= COLUMNS:
                     col = 0
@@ -487,7 +445,6 @@ class DashboardWindow(QMainWindow):
                 print(f"Error creating card: {e}")
 
     def create_profile_page(self):
-        """Creates the Full Profile Edit Form"""
         page = QWidget()
         page_layout = QVBoxLayout(page)
         page_layout.setContentsMargins(0, 0, 0, 0)
@@ -503,7 +460,7 @@ class DashboardWindow(QMainWindow):
         self.profile_layout.setContentsMargins(20, 0, 20, 20)
         self.profile_layout.setSpacing(20)
 
-        # --- Header Card ---
+        # Header Card
         header_card = QFrame()
         header_card.setObjectName("GlassCard")
         header_layout = QHBoxLayout(header_card)
@@ -541,14 +498,13 @@ class DashboardWindow(QMainWindow):
 
         self.profile_layout.addWidget(header_card)
 
-        # --- Form Card ---
+        # Form Card
         form_card = QFrame()
         form_card.setObjectName("GlassCard")
         form_layout = QVBoxLayout(form_card)
         form_layout.setContentsMargins(30, 30, 30, 30)
         form_layout.setSpacing(20)
 
-        # Personal Info Header
         sec_title = QHBoxLayout()
         sec_icon = QLabel()
         sec_icon.setPixmap(qta.icon('fa5s.user', color=THEMES[self.current_theme]['accent']).pixmap(20, 20))
@@ -559,7 +515,6 @@ class DashboardWindow(QMainWindow):
         sec_title.addStretch()
         form_layout.addLayout(sec_title)
 
-        # Helper to create inputs (Nested function)
         def create_input_group(label_text, key, placeholder="", is_password=False):
             group = QVBoxLayout()
             lbl = QLabel(label_text)
@@ -571,13 +526,12 @@ class DashboardWindow(QMainWindow):
             if is_password:
                 inp.setEchoMode(QLineEdit.Password)
             
-            self.inputs[key] = inp # Save reference
+            self.inputs[key] = inp
             
             group.addWidget(lbl)
             group.addWidget(inp)
             return group 
 
-        # Form Rows
         row1 = QHBoxLayout()
         row1.addLayout(create_input_group("First Name", "first_name", "John"))
         row1.addLayout(create_input_group("Last Name", "last_name", "Doe"))
@@ -590,7 +544,6 @@ class DashboardWindow(QMainWindow):
 
         form_layout.addLayout(create_input_group("Role / Designation", "role", "Senior Engineer"))
 
-        # Divider
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
@@ -599,7 +552,6 @@ class DashboardWindow(QMainWindow):
         form_layout.addWidget(line)
         form_layout.addSpacing(10)
 
-        # Security Section
         sec_title_2 = QHBoxLayout()
         sec_icon_2 = QLabel()
         sec_icon_2.setPixmap(qta.icon('fa5s.shield-alt', color=THEMES[self.current_theme]['accent']).pixmap(20, 20))
@@ -615,7 +567,6 @@ class DashboardWindow(QMainWindow):
         hint.setStyleSheet("color: #64748b; font-size: 11px; margin-top: -5px;")
         form_layout.addWidget(hint)
 
-        # Save/Verify Area
         self.save_container = QWidget()
         self.save_container.setVisible(False)
         save_layout = QVBoxLayout(self.save_container)
@@ -659,20 +610,15 @@ class DashboardWindow(QMainWindow):
         
         return page
 
-    # ---------------------------------------------------------
-    # INTERACTION LOGIC
-    # ---------------------------------------------------------
-
     def toggle_edit_mode(self):
         is_editing = self.edit_btn.isChecked()
 
         for key, inp in self.inputs.items():
             inp.setReadOnly(not is_editing)
-            # Optional visual cue for editable fields
             if is_editing:
                 inp.setStyleSheet(f"border: 1px solid {THEMES[self.current_theme]['accent']};")
             else:
-                inp.setStyleSheet("") # Revert to stylesheet default
+                inp.setStyleSheet("")
 
         if is_editing:
             self.edit_btn.setText(" Cancel")
@@ -689,26 +635,22 @@ class DashboardWindow(QMainWindow):
     def on_update_success(self, response):
         print("Update Success")
         
-        # 1. Update Local Data (So if we cancel later, it reverts to this)
         self.user_data['first_name'] = self.inputs['first_name'].text()
         self.user_data['last_name'] = self.inputs['last_name'].text()
         self.user_data['role'] = self.inputs['role'].text()
         
-        # 2. Update UI Header
         self.refresh_profile_ui()
 
-        # 3. Close Edit Mode
         self.edit_btn.setChecked(False)
         self.toggle_edit_mode()
         
-        # 4. Clear Password fields for security
         self.current_pass_input.clear()
         self.inputs['new_password'].clear()
-        self.current_pass_input.setStyleSheet("") # Reset red border if any
+        self.current_pass_input.setStyleSheet("")
 
     def on_update_error(self, err_msg):
         print(f"Update Failed: {err_msg}")
-        # In a real app, use QMessageBox.warning(self, "Error", "Incorrect Password or Server Error")
+        QMessageBox.warning(self, "Error", "Incorrect Password or Server Error")
         self.current_pass_input.setStyleSheet("border: 1px solid red;")
         self.current_pass_input.setText("")
         self.current_pass_input.setPlaceholderText("Incorrect Password")
@@ -722,31 +664,25 @@ class DashboardWindow(QMainWindow):
         print(current_password)
         
         if not current_password:
-            # Visual feedback
             self.current_pass_input.setStyleSheet("border: 1px solid red;")
             self.current_pass_input.setPlaceholderText("PASSWORD REQUIRED!")
             return
 
-        # 1. Prepare Data for API matches your Django View keys
         payload = {
             "first_name": self.inputs['first_name'].text(),
             "last_name": self.inputs['last_name'].text(),
-            "email": self.inputs['email'].text(), # Your Django view sets username = email
+            "email": self.inputs['email'].text(),
             "company": self.inputs['company'].text(),
             "role": self.inputs['role'].text(),
             "currentPassword":  current_password,
             "newPassword": self.inputs['new_password'].text()
         }
 
-        # 2. Disable Button
         self.save_btn.setText("Saving...")
         self.save_btn.setEnabled(False)
 
-        # 3. Configure Worker
-        # URL = Your Django Patch URL
         url = "http://127.0.0.1:8000/update/" 
         
-        # Headers = Token Auth
         headers = {
             "Authorization": f"Token {self.token}",
             "Content-Type": "application/json"
@@ -809,39 +745,27 @@ class DashboardWindow(QMainWindow):
         self.close()
 
 class MplBarChart(FigureCanvas):
-    """
-    A Matplotlib Figure embedded in a PyQt5 Canvas.
-    Matches the style of the React 'Statistics' component.
-    """
+   
     def __init__(self, labels, values, theme_colors, width=5, height=4, dpi=100):
-        # 1. Setup Figure
         self.fig = Figure(figsize=(width, height), dpi=dpi)
-        self.fig.patch.set_facecolor('none') # Transparent background
+        self.fig.patch.set_facecolor('none')
         super().__init__(self.fig)
         
-        # 2. Setup Axes
         self.axes = self.fig.add_subplot(111)
         self.axes.set_facecolor('none')
         
-        # 3. Colors (Matching your React code: Cyan, Indigo, Pink)
         bar_colors = ['#38bdf8', '#818cf8', '#f472b6']
         
-        # 4. Plot Data
         bars = self.axes.bar(labels, values, color=bar_colors, alpha=0.7, width=0.5)
         
-        # 5. Styling (Make it look like a dashboard, not a scientific plot)
-        
-        # Remove top and right borders (spines)
         self.axes.spines['top'].set_visible(False)
         self.axes.spines['right'].set_visible(False)
-        self.axes.spines['left'].set_visible(False) # Optional: Remove y-axis line
+        self.axes.spines['left'].set_visible(False)
         self.axes.spines['bottom'].set_color(theme_colors['text_secondary'])
         
-        # Style Ticks
         self.axes.tick_params(axis='x', colors=theme_colors['text_secondary'])
         self.axes.tick_params(axis='y', colors=theme_colors['text_secondary'])
-        
-        # Add Value Labels on top of bars
+       
         for bar in bars:
             height = bar.get_height()
             self.axes.text(
@@ -853,19 +777,17 @@ class MplBarChart(FigureCanvas):
                 fontsize=9
             )
         
-        # Tight layout to remove white margins
         self.fig.tight_layout()
 
 class HistoryCard(QFrame):
     def __init__(self, record, theme_colors):
         super().__init__()
         self.setObjectName("GlassCard")
-        self.setFixedSize(350, 320) # Slightly larger for the plot
+        self.setFixedSize(350, 320)
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(15, 15, 15, 15)
         
-        # --- Header (Date & Time) ---
         dt = QDateTime.fromString(record['created_at'], Qt.ISODate)
         header_layout = QHBoxLayout()
         
@@ -880,26 +802,21 @@ class HistoryCard(QFrame):
         header_layout.addWidget(time_lbl)
         layout.addLayout(header_layout)
         
-        # Divider
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         line.setStyleSheet(f"background-color: {theme_colors['border']}; margin: 5px 0;")
         layout.addWidget(line)
 
-        # --- Matplotlib Chart ---
         labels = record['distribution']['labels']
         values = record['distribution']['values']
         
-        # ✅ Create the Matplotlib Canvas
-        # We pass width=3, height=2 to keep it compact inside the card
         chart = MplBarChart(labels, values, theme_colors, width=3.2, height=2.2)
         layout.addWidget(chart)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    # Set global font
     font = QFont("Segoe UI", 10)
     app.setFont(font)
     

@@ -1,7 +1,7 @@
 import LandingPage from "./LandingPage/LandingPage";
 import Login from "./Authentication/Login";
 import Signup from "./Authentication/Signup";
-import Dashboard from "./UserPages/dashboard";
+import Dashboard from "./UserPages/Dashboard";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AppProvider from "./AppContext";

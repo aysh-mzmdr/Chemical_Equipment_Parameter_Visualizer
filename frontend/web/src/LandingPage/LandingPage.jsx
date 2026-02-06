@@ -21,7 +21,6 @@ const LandingPage = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  // Apply theme to the website
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
@@ -32,8 +31,6 @@ const LandingPage = () => {
 
   return (
     <div className={styles.container}>
-
-      {/* Navbar*/}
       <nav className={styles.navbar}>
         <div className={styles.logo}>
           <FlaskConical className={styles.logoIcon} />
@@ -50,7 +47,6 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <header className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.title}>
@@ -74,11 +70,9 @@ const LandingPage = () => {
           </div>
         </div>
   
-        {/* Mock Graph */}
         <div className={styles.heroVisual}>
           <div className={styles.monitorCard}>
             
-            {/* Monitor Head */}
             <div className={styles.monitorHeader}>
               <div className={styles.windowControls}>
                 <div className={styles.controlDot} style={{background:'#ada8a7'}}></div>
@@ -87,17 +81,15 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* Monitor Body */}
+
             <div className={styles.monitorBody}>
 
-              {/* Left: Practical Bar Graph */}
               <div className={styles.chartSection}>
                 <div className={styles.chartHeader}>
                   <span className={styles.chartLabel}>Equipment Count by Type</span>
                 </div>
                 
                 <div className={styles.graphContainer}>
-                  {/* Background Grid Lines */}
                   <div className={styles.gridLayer}>
                     <div className={styles.gridLine}></div>
                     <div className={styles.gridLine}></div>
@@ -105,31 +97,26 @@ const LandingPage = () => {
                     <div className={styles.gridLine}></div>
                   </div>
 
-                  {/* Bars Container */}
                   <div className={styles.barsLayer}>
                     
-                    {/* Bar 1: Reactors */}
                     <div className={styles.barColumn}>
                       
                       <div className={styles.barVisual} style={{height: '80%'}}></div>
                       <span className={styles.barLabel}>Reactors</span>
                     </div>
 
-                    {/* Bar 2: Tanks */}
                     <div className={styles.barColumn}>
                       
                       <div className={styles.barVisual} style={{height: '45%'}}></div>
                       <span className={styles.barLabel}>Tanks</span>
                     </div>
 
-                    {/* Bar 3: Heat Exchangers */}
                     <div className={styles.barColumn}>
                       
                       <div className={styles.barVisual} style={{height: '60%'}}></div>
                       <span className={styles.barLabel}>Heat Exchangers</span>
                     </div>
 
-                    {/* Bar 4: Pumps */}
                     <div className={styles.barColumn}>
                       
                       <div className={styles.barVisual} style={{height: '30%'}}></div>
@@ -140,7 +127,6 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              {/* Right: Parameter Grid */}
               <div className={styles.paramGrid}>
                 <div className={styles.paramBox}>
                   <span className={styles.pLabel}>Average Reactor Pressure</span>
@@ -161,7 +147,6 @@ const LandingPage = () => {
         </div>
       </header>
 
-      {/* Features Grid */}
       <section className={styles.features}>
         <div className={styles.featureCard}>
           <div className={styles.iconBox}><Database size={24} /></div>
@@ -173,7 +158,6 @@ const LandingPage = () => {
           <h3>Statistical Visualization</h3>
           <p>Auto-generated histograms, scatter plots, and heatmaps tailored for process engineering data.</p>
         </div>
-        {/* COMBINED: History & PDF Reports */}
         <div className={styles.featureCard}>
           <div className={styles.iconBox}><FileText size={24} /></div>
           <h3>History & Reports</h3>

@@ -1,9 +1,8 @@
 body{
   margin:0;
 }
-/* Color & Theme Variables */
+
 :root {
-  /* Light Theme Defaults */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --text-primary: #0f172a;
@@ -16,7 +15,6 @@ body{
 }
 
 [data-theme='dark'] {
-  /* Dark Theme Overrides */
   --bg-primary: #020617;
   --bg-secondary: #0f172a;
   --text-primary: #f1f5f9;
@@ -28,7 +26,6 @@ body{
   --grid-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Base Layout */
 .container {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
@@ -38,10 +35,9 @@ body{
   background-image: 
     linear-gradient(var(--grid-color) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-  background-size: 40px 40px; /* Technical Grid Pattern */
+  background-size: 40px 40px;
 }
 
-/* Navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -148,7 +144,6 @@ body{
   align-items: center;
 }
 
-/* Hero Section */
 .hero {
   max-width: 1200px;
   margin: 0 auto;
@@ -235,7 +230,6 @@ body{
   color: var(--text-primary);
 }
 
-/* Features Grid */
 .features {
   max-width: 1200px;
   margin: 0 auto;
@@ -269,8 +263,6 @@ body{
   border-radius: 12px;
   margin-bottom: 1rem;
 }
-
-/* Mock Scientific Monitor */
 
 .monitorCard {
   background: var(--glass-bg);
@@ -310,8 +302,6 @@ body{
   gap: 1.5rem;
 }
 
-/* Bar Graphs */
-
 .chartHeader {
   display: flex;
   justify-content: space-between;
@@ -326,7 +316,6 @@ body{
   margin-top: 10px;
 }
 
-/* Grid Layer (Background) */
 .gridLayer {
   position: absolute;
   top: 0;
@@ -347,7 +336,6 @@ body{
   border-top: 1px dashed var(--border-color);
 }
 
-/* Bars (Foreground) */
 .barsLayer {
   position: absolute;
   top: 0;
@@ -371,7 +359,6 @@ body{
   gap: 4px;
 }
 
-/* The actual colored bar */
 .barVisual {
   width: 24px;
   background: var(--accent-color);
@@ -380,8 +367,6 @@ body{
   animation: growUp 1s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0.9;
 }
-
-/* Labels */
 
 .barLabel {
   font-size: 0.7rem;
@@ -392,7 +377,6 @@ body{
   align-items: center;
 }
 
-/* Chart Section */
 .chartSection {
   display: flex;
   flex-direction: column;
@@ -407,7 +391,6 @@ body{
   font-weight: 600;
 }
 
-/* Parameter Grid */
 .paramGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -451,7 +434,6 @@ body{
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Animations */
 @keyframes pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
@@ -465,7 +447,6 @@ body{
   to { opacity: 1; }
 }
 
-/* Mobile Responsive */
 @media (max-width: 768px) {
   .hero {
     grid-template-columns: 1fr;

@@ -7,7 +7,6 @@
   animation: fadeIn 0.4s ease-out;
 }
 
-/* --- Header Card --- */
 .profileHeader {
   background: var(--glass-bg);
   border: 1px solid var(--border-color);
@@ -49,7 +48,6 @@
   font-size: 0.95rem;
 }
 
-/* Edit Toggle Button */
 .editBtn {
   position: absolute;
   top: 2rem;
@@ -73,12 +71,11 @@
 }
 
 .editBtn.active {
-  background: rgba(244, 63, 94, 0.1); /* Red tint for cancel */
+  background: rgba(244, 63, 94, 0.1);
   color: #f43f5e;
   border-color: rgba(244, 63, 94, 0.3);
 }
 
-/* --- Form Card --- */
 .formCard {
   background: var(--glass-bg);
   border: 1px solid var(--border-color);
@@ -99,7 +96,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* Grid Layout */
 .gridRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -128,7 +124,6 @@
   opacity: 0.7;
 }
 
-/* Input Styling */
 .input {
   width: 300px;
   margin:10px;
@@ -138,13 +133,11 @@
   color: var(--text-primary);
   transition: all 0.3s ease;
   text-align: left;
-  /* DEFAULT STATE (Read Only) */
   background: transparent;
-  border: 1px solid transparent; /* No border initially */
-  padding-left: 0; /* Align with label when reading */
+  border: 1px solid transparent;
+  padding-left: 0;
 }
 
-/* Handling Icons in Inputs */
 .iconInput {
   position: relative;
   display: flex;
@@ -155,24 +148,20 @@
   position: absolute;
   left: 0;
   color: var(--text-secondary);
-  opacity: 0; /* Hidden in read mode to look cleaner, or keep visible if preferred */
+  opacity: 0;
   transition: opacity 0.3s;
 }
 
-/* --- EDIT MODE STYLES --- */
-/* When input is NOT disabled (User clicked Edit) */
 .input:not(:disabled) {
-  background: var(--bg-primary); /* Use solid/dark bg */
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  padding-left: 1rem; /* Restore padding */
+  padding-left: 1rem; 
 }
 
-/* If inside icon wrapper, add left padding for icon */
 .iconInput .input:not(:disabled) {
   padding-left: 2.5rem;
 }
 
-/* Show icons only in edit mode */
 .input:not(:disabled) ~ .fieldIcon,
 .iconInput:focus-within .fieldIcon {
   opacity: 1;
@@ -185,7 +174,6 @@
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-/* --- Divider --- */
 .divider {
   height: 1px;
   background: var(--border-color);
@@ -193,7 +181,6 @@
   margin: 0.5rem 0;
 }
 
-/* --- Verification Box (Slide Down) --- */
 .verificationBox {
   margin-top: 1rem;
   background: rgba(var(--accent-color), 0.05);
@@ -241,7 +228,6 @@
   opacity: 0.9;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -252,10 +238,9 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Responsive */
 @media (max-width: 600px) {
   .gridRow {
-    grid-template-columns: 1fr; /* Stack inputs */
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
   
@@ -266,7 +251,7 @@
   }
   
   .editBtn {
-    position: static; /* Let it flow in flex */
+    position: static;
     margin-top: 1rem;
     justify-content: center;
     width: 100%;

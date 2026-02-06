@@ -8,12 +8,10 @@ import Statistics from "../Components/Statistics"
 
 const WorkspacePage = () => {
 
-  // Register ChartJS components
   const token = localStorage.getItem('userToken')
   const fileInputRef = useRef(null);
 
   const handleBtnClick = () => {
-  // Triggers the hidden input when the custom button is clicked
   fileInputRef.current.click();
   };
 
@@ -26,7 +24,6 @@ const WorkspacePage = () => {
 
     if (file.type === "text/csv" || file.name.endsWith(".csv")) {
       console.log("CSV File Selected:", file.name);
-      // Handle your upload logic here
     } 
     else {
       alert("Only CSV files are allowed.");
@@ -41,15 +38,13 @@ const WorkspacePage = () => {
         headers:{
           "Authorization":`Token ${token}`
         },
-        body: formData, // No headers needed, browser sets multipart automatically
+        body: formData,
       });
       
       const data = await response.json();
       
       if (response.ok) {
         setStats(data);
-        
-        // Prepare Data for Chart.js
         setChartData({
           labels: data.distribution.labels,
           datasets: [
@@ -57,9 +52,9 @@ const WorkspacePage = () => {
               label: 'Equipment Count',
               data: data.distribution.values,
               backgroundColor: [
-                'rgba(56, 189, 248, 0.6)', // Cyan
-                'rgba(129, 140, 248, 0.6)', // Indigo
-                'rgba(244, 114, 182, 0.6)', // Pink
+                'rgba(56, 189, 248, 0.6)',
+                'rgba(129, 140, 248, 0.6)',
+                'rgba(244, 114, 182, 0.6)',
               ],
               borderColor: [
                 'rgba(56, 189, 248, 1)',
@@ -89,8 +84,6 @@ const WorkspacePage = () => {
         <h3>Upload Equipment Data</h3>
         <p>Drag and drop your CSV file here to begin analysis</p>
         
-        {/* --- HIDDEN INPUT --- */}
-        {/* accept=".csv" forces the file explorer to only show CSVs */}
         <input 
           type="file" 
           ref={fileInputRef}
@@ -99,7 +92,6 @@ const WorkspacePage = () => {
           style={{ display: 'none' }} 
         />
 
-        {/* --- YOUR BUTTON --- */}
         <button className={styles.primaryBtn} onClick={handleBtnClick}>
           Select File <ChevronRight size={16} />
         </button>
