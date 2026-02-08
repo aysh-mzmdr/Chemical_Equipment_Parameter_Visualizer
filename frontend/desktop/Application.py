@@ -1,8 +1,9 @@
 import sys
+import requests
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QLineEdit, QPushButton, QFrame, QStackedWidget, 
-    QGraphicsDropShadowEffect, QScrollArea, QGridLayout, QMessageBox
+    QGraphicsDropShadowEffect, QScrollArea, QGridLayout, QMessageBox, QFileDialog
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime
 from PyQt5.QtGui import QColor, QFont
@@ -29,17 +30,14 @@ class LoginWindow(QMainWindow,StyleSheetManager):
     def init_ui(self):
         self.setWindowTitle("Chemical Equipment Parameter Visualizer - Login")
         self.setFixedSize(720,680)
-        
-        # Central Widget
+
         self.central_widget = QWidget()
         self.central_widget.setObjectName("CentralWidget")
         self.setCentralWidget(self.central_widget)
-        
-        # Layouts
+
         main_layout = QVBoxLayout(self.central_widget)
         main_layout.setAlignment(Qt.AlignCenter)
 
-        # Theme Toggle
         self.toggle_btn = QPushButton()
         self.toggle_btn.setIcon(qta.icon('fa5s.sun' if self.current_theme == 'dark' else 'fa5s.moon', color='#94a3b8'))
         self.toggle_btn.setFixedSize(40, 40)
@@ -47,19 +45,16 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         self.toggle_btn.setCursor(Qt.PointingHandCursor)
         self.toggle_btn.clicked.connect(self.toggle_theme)
         
-        # Positioning the toggle button
         top_bar = QHBoxLayout()
         top_bar.addStretch()
         top_bar.addWidget(self.toggle_btn)
         main_layout.addLayout(top_bar)
         main_layout.addStretch()
 
-        # Login Card
         self.card = QFrame()
         self.card.setObjectName("GlassCard")
         self.card.setFixedSize(700,600)
         
-        # Shadow Effect for Card
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(30)
         shadow.setColor(QColor(0, 0, 0, 80))
@@ -70,7 +65,6 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         card_layout.setContentsMargins(40, 40, 40, 40)
         card_layout.setSpacing(20)
 
-        # Logo Area
         logo_layout = QVBoxLayout()
         logo_icon = QLabel()
         logo_pixmap = qta.icon('fa5s.flask', color=THEMES[self.current_theme]['accent']).pixmap(48, 48)
@@ -91,7 +85,6 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         logo_layout.addWidget(subtitle)
         card_layout.addLayout(logo_layout)
 
-        # Form Area
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("eng.name@company.com")
         
@@ -164,7 +157,8 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         self.close()
 
     def on_login_error(self, error_message):
-        QMessageBox.warning(self, "Error", error_message)
+        print(f"Update Failed: {error_message}")
+        QMessageBox.warning(self, "Error", str(error_message))
 
     def on_request_finished(self):
         self.login_btn.setEnabled(True)
@@ -176,6 +170,84 @@ class LoginWindow(QMainWindow,StyleSheetManager):
             self.worker.wait()
         event.accept()
 
+class AnalysisResultWidget(QFrame):
+    def __init__(self, data, theme_colors):
+        super().__init__()
+        self.setObjectName("GlassCard")
+
+        self.setStyleSheet(f"""
+            #GlassCard {{
+                background-color: {theme_colors['bg']};
+                border: 2px solid {theme_colors['border']};
+                border-radius: 16px;
+            }}
+            QLabel {{ color: {theme_colors['text_primary']}; }}
+        """)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(30, 30, 30, 30)
+
+        created_at = data.get('created_at', None)
+        if created_at:
+            dt = QDateTime.fromString(created_at, Qt.ISODate)
+        else:
+            dt = QDateTime.currentDateTime()
+
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(8)
+
+        date_lbl = QLabel(dt.toString("MMM d, yyyy"))
+        date_lbl.setStyleSheet(f"color: {theme_colors['text_primary']}; font-weight: bold; font-size: 18px;")
+
+        sep_lbl = QLabel("•")
+        sep_lbl.setStyleSheet(f"color: {theme_colors['accent']}; font-size: 20px; line-height: 1;")
+
+        time_lbl = QLabel(dt.toString("h:mm AP"))
+        time_lbl.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 14px; font-weight: 500;")
+
+        header_layout.addWidget(date_lbl)
+        header_layout.addWidget(sep_lbl)
+        header_layout.addWidget(time_lbl)
+        header_layout.addStretch()
+        
+        layout.addLayout(header_layout)
+        layout.addSpacing(20)
+
+        stats_layout = QHBoxLayout()
+        stats = data.get('averages', {})
+        total = data.get('total_count', 0)
+
+        def create_stat_block(title, value, unit=""):
+            container = QFrame()
+            container.setStyleSheet(f"background-color: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 10px;")
+            v_layout = QVBoxLayout(container)
+            v_layout.setAlignment(Qt.AlignCenter)
+            
+            t_label = QLabel(title.upper())
+            t_label.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 12px; font-weight: bold;")
+            
+            v_label = QLabel(f"{value} {unit}")
+            v_label.setStyleSheet(f"color: {theme_colors['accent']}; font-size: 24px; font-weight: bold;")
+            
+            v_layout.addWidget(t_label, 0, Qt.AlignCenter)
+            v_layout.addWidget(v_label, 0, Qt.AlignCenter)
+            return container
+
+        stats_layout.addWidget(create_stat_block("Total Units", total))
+        stats_layout.addWidget(create_stat_block("Avg Pressure", stats.get('pressure', 0), "bar"))
+        stats_layout.addWidget(create_stat_block("Avg Temp", stats.get('temperature', 0), "°C"))
+        
+        layout.addLayout(stats_layout)
+        layout.addSpacing(30)
+
+        chart_data = data.get('distribution', {})
+        if chart_data:
+            labels = chart_data.get('labels', [])
+            values = chart_data.get('values', [])
+            
+            self.chart = MplBarChart(labels, values, theme_colors, width=5, height=4)
+            layout.addWidget(self.chart)
+
 class DashboardWindow(QMainWindow):
     def __init__(self, theme='dark'):
         super().__init__()
@@ -183,6 +255,77 @@ class DashboardWindow(QMainWindow):
         self.is_sidebar_open = True
         self.inputs = {}
         self.init_ui()
+    
+    def display_results(self, data):
+
+        if hasattr(self, 'upload_card'):
+            self.upload_card.hide()
+            self.workspace_layout.removeWidget(self.upload_card)
+
+        theme = THEMES[self.current_theme]
+        colors = {'text_primary': theme['text_primary'], 'text_secondary': theme['text_secondary'], 'border': '#1e293b', 'accent': theme['accent'], 'bg': '#0f172a'}
+                    
+        self.result_widget = AnalysisResultWidget(data,colors)
+        
+        self.workspace_layout.insertWidget(0, self.result_widget)
+        
+        self.reset_btn = QPushButton("Analyze New File")
+        self.reset_btn.setCursor(Qt.PointingHandCursor)
+        self.reset_btn.setStyleSheet("color: #38bdf8; background: transparent; border: 1px solid #38bdf8; padding: 10px; border-radius: 8px;")
+        self.reset_btn.clicked.connect(self.reset_workspace)
+        self.workspace_layout.insertWidget(1, self.reset_btn)
+
+    def reset_workspace(self):
+        self.result_widget.deleteLater()
+        self.reset_btn.deleteLater()
+        
+        self.upload_card.show()
+        self.workspace_layout.insertWidget(0, self.upload_card)
+    
+    def upload_csv(self, file_path):
+        url = "http://127.0.0.1:8000/upload/"
+
+        if not hasattr(self, 'token') or not self.token:
+            QMessageBox.critical(self, "Error", "You must be logged in to upload files.")
+            return
+
+        headers = {
+            "Authorization": f"Token {self.token}" 
+        }
+
+        try:
+            with open(file_path, 'rb') as f:
+                files = {'file': f}
+                
+                print(f"Uploading {file_path}...")
+                response = requests.post(url, headers=headers, files=files)
+
+            if response.status_code == 200:
+                print("Success:", response.json())
+                QMessageBox.information(self, "Success", "File uploaded and analyzed successfully!")
+                self.display_results(response.json())
+                
+            else:
+                error_msg = response.json().get('error', 'Unknown Error')
+                print(f"Upload Failed: {error_msg}")
+                QMessageBox.warning(self, "Upload Failed", str(error_msg))
+
+        except requests.exceptions.ConnectionError:
+            QMessageBox.critical(self, "Connection Error", "Could not connect to the server. Is Django running?")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An unexpected error occurred: {str(e)}")
+    
+    def open_file_dialog(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select CSV File",      
+            "",                    
+            "CSV Files (*.csv)"     
+        )
+
+        if file_path:
+            print(f"Selected: {file_path}")
+            self.upload_csv(file_path)
 
     def init_ui(self):
         self.setWindowTitle("Chemical Equipment Parameter Visualizer - Dashboard")
@@ -192,12 +335,10 @@ class DashboardWindow(QMainWindow):
         self.central_widget.setObjectName("CentralWidget")
         self.setCentralWidget(self.central_widget)
 
-        # Main Layout
         self.main_h_layout = QHBoxLayout(self.central_widget)
         self.main_h_layout.setContentsMargins(0, 0, 0, 0)
         self.main_h_layout.setSpacing(0)
 
-        # Sidebar
         self.sidebar = QFrame()
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(260)
@@ -206,7 +347,6 @@ class DashboardWindow(QMainWindow):
         sidebar_layout.setContentsMargins(20, 30, 20, 20)
         sidebar_layout.setSpacing(10)
 
-        # Logo Section
         logo_box = QHBoxLayout()
         self.logo_lbl = QLabel()
         self.logo_lbl.setPixmap(qta.icon('fa5s.flask', color=THEMES[self.current_theme]['accent']).pixmap(24, 24))
@@ -218,7 +358,6 @@ class DashboardWindow(QMainWindow):
         sidebar_layout.addLayout(logo_box)
         sidebar_layout.addSpacing(30)
 
-        # Navigation Menu Logic
         self.nav_buttons = [] 
         
         menus = [
@@ -239,7 +378,6 @@ class DashboardWindow(QMainWindow):
 
         sidebar_layout.addStretch()
 
-        # Footer
         self.logout_btn = QPushButton("  Logout")
         self.logout_btn.setIcon(qta.icon('fa5s.sign-out-alt', color="#94a3b8"))
         self.logout_btn.setObjectName("NavItem")
@@ -249,12 +387,10 @@ class DashboardWindow(QMainWindow):
 
         self.main_h_layout.addWidget(self.sidebar)
 
-        # Main Content Area
         content_area = QWidget()
         content_layout = QVBoxLayout(content_area)
         content_layout.setContentsMargins(30, 30, 30, 30)
 
-        # Top Header
         header_layout = QHBoxLayout()
         self.menu_btn = QPushButton()
         self.menu_btn.setIcon(qta.icon('fa5s.bars', color=THEMES[self.current_theme]['text_primary']))
@@ -280,18 +416,14 @@ class DashboardWindow(QMainWindow):
 
         content_layout.addLayout(header_layout)
 
-        # Stacked Widget
         self.stack = QStackedWidget()
         
-        # Workspace Page
         workspace_page = self.create_workspace_page()
         self.stack.addWidget(workspace_page)
         
-        # History Page
         history_page = self.create_history_page("History Log", "fa5s.history")
         self.stack.addWidget(history_page)
 
-        # Profile Page
         profile_page = self.create_profile_page() 
         self.stack.addWidget(profile_page)
 
@@ -318,12 +450,14 @@ class DashboardWindow(QMainWindow):
 
     def create_workspace_page(self):
         page = QWidget()
-        layout = QVBoxLayout(page)
+    
+        self.workspace_layout = QVBoxLayout(page) 
+
+        self.upload_card = QFrame() 
+        self.upload_card.setObjectName("GlassCard")
+        self.upload_card.setFixedHeight(300)
         
-        upload_card = QFrame()
-        upload_card.setObjectName("GlassCard")
-        upload_card.setFixedHeight(300)
-        uc_layout = QVBoxLayout(upload_card)
+        uc_layout = QVBoxLayout(self.upload_card)
         uc_layout.setAlignment(Qt.AlignCenter)
         
         cloud_icon = QLabel()
@@ -338,27 +472,59 @@ class DashboardWindow(QMainWindow):
         uc_btn.setObjectName("PrimaryBtn")
         uc_btn.setFixedWidth(150)
         uc_btn.setCursor(Qt.PointingHandCursor)
+        uc_btn.clicked.connect(self.open_file_dialog)
 
         uc_layout.addWidget(cloud_icon)
         uc_layout.addWidget(uc_text)
         uc_layout.addWidget(uc_btn, 0, Qt.AlignCenter)
 
-        layout.addWidget(upload_card)
-        layout.addStretch()
+        self.workspace_layout.addWidget(self.upload_card)
+        self.workspace_layout.addStretch()
+        
         return page
+    
+    def fetch_history(self):
+        for i in reversed(range(self.history_grid.count())): 
+            self.history_grid.itemAt(i).widget().setParent(None)
+
+        url = "http://127.0.0.1:8000/history/" 
+        if not hasattr(self, 'token'): return
+
+        try:
+            response = requests.get(url, headers={"Authorization": f"Token {self.token}"})
+            
+            if response.status_code == 200:
+                records = response.json()
+                
+                row, col = 0, 0
+                for record in records:
+                    theme = THEMES[self.current_theme]
+                    colors = {'text_primary': theme['text_primary'], 'text_secondary': theme['text_secondary'], 'border': '#1e293b', 'accent': theme['accent'], 'bg': '#0f172a'}
+                    
+                    card = HistoryCard(record, colors)
+                    self.history_grid.addWidget(card, row, col)
+
+                    col += 1
+                    if col > 1:
+                        col = 0
+                        row += 1
+            else:
+                self.history_grid.addWidget(QLabel("Failed to load history."), 0, 0)
+
+        except Exception as e:
+            print(f"History Error: {e}")
+            self.history_grid.addWidget(QLabel("Connection Error"), 0, 0)
 
     def create_history_page(self, title, icon_name):
         page = QWidget()
         page_layout = QVBoxLayout(page)
         page_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 1. Scroll Area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
         scroll.setStyleSheet("background: transparent;")
 
-        # 2. Content Container
         self.history_content_widget = QWidget()
         
         self.history_grid = QGridLayout(self.history_content_widget)
@@ -412,7 +578,6 @@ class DashboardWindow(QMainWindow):
                 widget.deleteLater()
 
         if not history_list:
-            #empty_layout = QVBoxLayout()
             icon = QLabel()
             icon.setPixmap(qta.icon('fa5s.box-open', color="#94a3b8").pixmap(64, 64))
             icon.setAlignment(Qt.AlignCenter)
@@ -449,7 +614,6 @@ class DashboardWindow(QMainWindow):
         page_layout = QVBoxLayout(page)
         page_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 1. Scroll Area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -460,7 +624,6 @@ class DashboardWindow(QMainWindow):
         self.profile_layout.setContentsMargins(20, 0, 20, 20)
         self.profile_layout.setSpacing(20)
 
-        # Header Card
         header_card = QFrame()
         header_card.setObjectName("GlassCard")
         header_layout = QHBoxLayout(header_card)
@@ -498,7 +661,6 @@ class DashboardWindow(QMainWindow):
 
         self.profile_layout.addWidget(header_card)
 
-        # Form Card
         form_card = QFrame()
         form_card.setObjectName("GlassCard")
         form_layout = QVBoxLayout(form_card)
@@ -661,8 +823,7 @@ class DashboardWindow(QMainWindow):
 
     def handle_save_profile(self):
         current_password = self.current_pass_input.text()
-        print(current_password)
-        
+                
         if not current_password:
             self.current_pass_input.setStyleSheet("border: 1px solid red;")
             self.current_pass_input.setPlaceholderText("PASSWORD REQUIRED!")
