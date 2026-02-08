@@ -995,6 +995,15 @@ if __name__ == "__main__":
     font = QFont("Segoe UI", 10)
     app.setFont(font)
     
+    try:
+        from ctypes import windll
+        myappid = 'mycompany.myproduct.subproduct.version'
+        windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    except ImportError:
+        pass
+
+    app.setWindowIcon(QIcon("../flask.svg"))
+
     window = LoginWindow()
     window.show()
     
