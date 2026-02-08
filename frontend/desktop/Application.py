@@ -8,10 +8,9 @@ from PyQt5.QtWidgets import (
     QGraphicsDropShadowEffect, QScrollArea, QGridLayout, QMessageBox, QFileDialog
 )
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime, QThread, pyqtSignal
-from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtGui import QColor, QFont, QIcon
 import qtawesome as qta
 
-# Ensure you have these files in your directory or remove imports if testing in isolation
 from StyleSheetManager import * 
 from Thread import APIWorker
 
@@ -22,7 +21,7 @@ from matplotlib.figure import Figure
 matplotlib.use('Qt5Agg')
 
 class DownloadWorker(QThread):
-    finished = pyqtSignal(bool, str) # Success/Fail, Message/Filename
+    finished = pyqtSignal(bool, str) 
 
     def __init__(self, url, token, payload, save_path):
         super().__init__()
@@ -37,11 +36,9 @@ class DownloadWorker(QThread):
                 "Authorization": f"Token {self.token}",
                 "Content-Type": "application/json"
             }
-            # Send Data to Backend
             response = requests.post(self.url, json=self.payload, headers=headers)
 
             if response.status_code == 200:
-                # Write the binary PDF content to the selected file
                 with open(self.save_path, 'wb') as f:
                     f.write(response.content)
                 self.finished.emit(True, "PDF Downloaded Successfully!")
@@ -54,6 +51,7 @@ class LoginWindow(QMainWindow, StyleSheetManager):
     
     def __init__(self, theme='dark'):
         super().__init__()
+        self.setWindowIcon(QIcon("../flask.svg"))
         self.current_theme = theme
         self.inputs = {}
         self.token = None      
@@ -204,7 +202,7 @@ class AnalysisResultWidget(QFrame):
         super().__init__()
         self.setObjectName("GlassCard")
         self.data = data
-        self.theme_colors = theme_colors # CRITICAL: Save colors for create_stat_block
+        self.theme_colors = theme_colors
         
         self.setStyleSheet(f"""
             #GlassCard {{
@@ -218,7 +216,6 @@ class AnalysisResultWidget(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 30, 30, 30)
 
-        # --- Header ---
         created_at = data.get('created_at', None)
         if created_at:
             dt = QDateTime.fromString(created_at, Qt.ISODate)
@@ -245,7 +242,6 @@ class AnalysisResultWidget(QFrame):
         layout.addLayout(header_layout)
         layout.addSpacing(20)
 
-        # --- Stats ---
         stats_layout = QHBoxLayout()
         stats = data.get('averages', {})
         total = data.get('total_count', 0)
@@ -257,7 +253,6 @@ class AnalysisResultWidget(QFrame):
         layout.addLayout(stats_layout)
         layout.addSpacing(30)
 
-        # --- Chart & Button ---
         chart_data = data.get('distribution', {})
         if chart_data:
             labels = chart_data.get('labels', [])
@@ -265,8 +260,7 @@ class AnalysisResultWidget(QFrame):
             
             self.chart = MplBarChart(labels, values, theme_colors, width=5, height=4)
             layout.addWidget(self.chart)
-            
-            # Button Container
+
             btn_container = QHBoxLayout()
             btn_container.addStretch()
             
@@ -314,6 +308,7 @@ class AnalysisResultWidget(QFrame):
 class DashboardWindow(QMainWindow):
     def __init__(self, theme='dark'):
         super().__init__()
+        self.setWindowIcon(QIcon("../flask.svg"))
         self.current_theme = theme
         self.is_sidebar_open = True
         self.inputs = {}
@@ -326,16 +321,10 @@ class DashboardWindow(QMainWindow):
 
         theme_data = THEMES[self.current_theme]
         
-        # Create Widget
         self.result_widget = AnalysisResultWidget(data, theme_data)
-        
-        # Connect Signals
         self.result_widget.download_requested.connect(self.handle_pdf_download)
-        
-        # Add to Layout
         self.workspace_layout.insertWidget(0, self.result_widget)
-        
-        # Add Reset Button
+
         self.reset_btn = QPushButton("Analyze New File")
         self.reset_btn.setCursor(Qt.PointingHandCursor)
         self.reset_btn.setStyleSheet(f"color: {theme_data['accent']}; background: transparent; border: 1px solid {theme_data['accent']}; padding: 10px; border-radius: 8px;")
@@ -351,7 +340,6 @@ class DashboardWindow(QMainWindow):
         self.workspace_layout.insertWidget(0, self.upload_card)
     
     def upload_csv(self, file_path):
-        # FIX: Ensure URL is correct
         url = "http://127.0.0.1:8000/upload/"
 
         if not hasattr(self, 'token') or not self.token:
@@ -532,12 +520,9 @@ class DashboardWindow(QMainWindow):
         return page
     
     def fetch_history(self):
-        # 1. Clear Grid
         for i in reversed(range(self.history_grid.count())): 
             self.history_grid.itemAt(i).widget().setParent(None)
 
-        # Ensure this URL matches your Django urls.py exactly! 
-        # (e.g. if you have path('api/', include(...)), it might be /api/record/)
         url = "http://127.0.0.1:8000/record/" 
         
         if not hasattr(self, 'token'): return
@@ -546,16 +531,13 @@ class DashboardWindow(QMainWindow):
             response = requests.get(url, headers={"Authorization": f"Token {self.token}"})
             
             if response.status_code == 200:
-                # --- FIX START ---
                 response_data = response.json()
-                
-                # Extract the actual list from the "resultData" key
+
                 records = response_data.get('resultData', [])
                 
                 if not records:
                     self.history_grid.addWidget(QLabel("No history found."), 0, 0)
                     return
-                # --- FIX END ---
 
                 theme = THEMES[self.current_theme]
                 COLUMNS = 2
@@ -563,7 +545,6 @@ class DashboardWindow(QMainWindow):
                 
                 for record in records:
                     card = HistoryCard(record, theme)
-                    # Connect signal
                     card.download_requested.connect(self.handle_pdf_download)
                     
                     self.history_grid.addWidget(card, row, col)
@@ -623,7 +604,6 @@ class DashboardWindow(QMainWindow):
             "created_at": data.get('created_at', '')
         }
 
-        # FIX: Ensure URL includes /api/
         url = "http://127.0.0.1:8000/download/" 
         
         self.dl_worker = DownloadWorker(url, self.token, payload, file_path)
@@ -856,7 +836,6 @@ class DashboardWindow(QMainWindow):
         self.save_btn.setText("Saving...")
         self.save_btn.setEnabled(False)
 
-        # FIX: Ensure URL includes /api/
         url = "http://127.0.0.1:8000/update/" 
         headers = { "Authorization": f"Token {self.token}", "Content-Type": "application/json" }
 
@@ -993,7 +972,7 @@ class HistoryCard(QFrame):
         dl_btn.clicked.connect(self.on_download_click)
         header_layout.addWidget(dl_btn) 
         
-        layout.addLayout(header_layout) # Added only once now
+        layout.addLayout(header_layout)
         
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
