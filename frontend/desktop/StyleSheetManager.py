@@ -8,7 +8,8 @@ THEMES = {
         'accent_glow': "rgba(56, 189, 248, 0.25)",
         'glass_bg': "rgba(15, 23, 42, 0.85)",
         'border': "#1e293b",
-        'input_bg': "rgba(30, 41, 59, 0.5)"
+        'input_bg': "rgba(30, 41, 59, 0.5)",
+        'btn_text': 'white'
     },
     'light': {
         'bg_primary': "#f8fafc",
@@ -19,7 +20,8 @@ THEMES = {
         'accent_glow': "rgba(14, 165, 233, 0.2)",
         'glass_bg': "rgba(255, 255, 255, 0.9)",
         'border': "#e2e8f0",
-        'input_bg': "#ffffff"
+        'input_bg': "#ffffff",
+        'btn_text': 'black'
     }
 }
 
@@ -31,12 +33,14 @@ class StyleSheetManager:
             QMainWindow, QWidget#CentralWidget {{
                 background-color: {t['bg_primary']};
             }}
+            
             /* Glass Card Styling */
             QFrame#GlassCard {{
                 background-color: {t['glass_bg']};
                 border: 1px solid {t['border']};
                 border-radius: 16px;
             }}
+            
             /* Text Styling */
             QLabel {{
                 color: {t['text_primary']};
@@ -49,7 +53,7 @@ class StyleSheetManager:
             QLabel#Subtitle {{
                 color: {t['text_secondary']};
                 font-size: 18px;
-                min-height:100px;
+                min-height: 100px;
             }}
             QLabel#LogoText {{
                 font-size: 18px;
@@ -82,7 +86,7 @@ class StyleSheetManager:
                 font-weight: bold;
                 font-size: 18px;
                 border: none;
-                margin-top:25px;
+                margin-top: 25px;
             }}
             QPushButton#PrimaryBtn:hover {{
                 background-color: {t['accent']};
@@ -126,4 +130,39 @@ class StyleSheetManager:
                 font-weight: bold;
             }}
 
+            /* --- FIX: MESSAGE BOX STYLING --- */
+            QMessageBox {{
+                background-color: {t['bg_secondary']};
+                border: 1px solid {t['border']};
+            }}
+            QMessageBox QLabel {{
+                color: {t['text_primary']};
+                background-color: transparent;
+            }}
+            QMessageBox QPushButton {{
+                background-color: {t['input_bg']};
+                color: {t['text_primary']};
+                border: 1px solid {t['border']};
+                border-radius: 6px;
+                padding: 6px 15px;
+                min-width: 80px;
+            }}
+            QMessageBox QPushButton:hover {{
+                background-color: {t['accent']};
+                color: white;
+                border: 1px solid {t['accent']};
+            }}
+            QPushButton#PrimaryBtn {{
+                background-color: {t['accent']};
+                
+                /* FIX: Use dynamic text color instead of hardcoded 'white' */
+                color: {t['btn_text']}; 
+                
+                border-radius: 8px;
+                padding: 10px;
+                font-weight: bold;
+                font-size: 18px;
+                border: none;
+                margin-top: 25px;
+            }}
         """

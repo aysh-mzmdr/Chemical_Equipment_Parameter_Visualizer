@@ -1,14 +1,18 @@
 import sys
 import requests
+import base64
+import io
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QLineEdit, QPushButton, QFrame, QStackedWidget, 
     QGraphicsDropShadowEffect, QScrollArea, QGridLayout, QMessageBox, QFileDialog
 )
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime, QThread, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 import qtawesome as qta
-from StyleSheetManager import *
+
+# Ensure you have these files in your directory or remove imports if testing in isolation
+from StyleSheetManager import * 
 from Thread import APIWorker
 
 import matplotlib
@@ -17,7 +21,36 @@ from matplotlib.figure import Figure
 
 matplotlib.use('Qt5Agg')
 
-class LoginWindow(QMainWindow,StyleSheetManager):
+class DownloadWorker(QThread):
+    finished = pyqtSignal(bool, str) # Success/Fail, Message/Filename
+
+    def __init__(self, url, token, payload, save_path):
+        super().__init__()
+        self.url = url
+        self.token = token
+        self.payload = payload
+        self.save_path = save_path
+
+    def run(self):
+        try:
+            headers = {
+                "Authorization": f"Token {self.token}",
+                "Content-Type": "application/json"
+            }
+            # Send Data to Backend
+            response = requests.post(self.url, json=self.payload, headers=headers)
+
+            if response.status_code == 200:
+                # Write the binary PDF content to the selected file
+                with open(self.save_path, 'wb') as f:
+                    f.write(response.content)
+                self.finished.emit(True, "PDF Downloaded Successfully!")
+            else:
+                self.finished.emit(False, f"Server Error: {response.status_code}")
+        except Exception as e:
+            self.finished.emit(False, str(e))
+
+class LoginWindow(QMainWindow, StyleSheetManager):
     
     def __init__(self, theme='dark'):
         super().__init__()
@@ -125,7 +158,6 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         self.setStyleSheet(StyleSheetManager.get_sheet(self.current_theme))
 
     def handle_login(self):
-        
         email = self.email_input.text()
         password = self.pass_input.text()
         
@@ -136,23 +168,18 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         data = {"username": email, "password": password}
 
         self.worker = APIWorker(url, data)
-        
         self.worker.success.connect(self.on_login_success)
         self.worker.error.connect(self.on_login_error)
         self.worker.finished.connect(self.on_request_finished)
-        
         self.worker.start()
 
     def on_login_success(self, response_data):
         print("Login Success!")
         
         self.dashboard = DashboardWindow(self.current_theme)
-
         self.dashboard.token = response_data.get('token')
         self.dashboard.user_data = response_data.get('user', {}) 
-        
         self.dashboard.refresh_profile_ui() 
-
         self.dashboard.show()
         self.close()
 
@@ -171,13 +198,17 @@ class LoginWindow(QMainWindow,StyleSheetManager):
         event.accept()
 
 class AnalysisResultWidget(QFrame):
+    download_requested = pyqtSignal(object, object)
+    
     def __init__(self, data, theme_colors):
         super().__init__()
         self.setObjectName("GlassCard")
-
+        self.data = data
+        self.theme_colors = theme_colors # CRITICAL: Save colors for create_stat_block
+        
         self.setStyleSheet(f"""
             #GlassCard {{
-                background-color: {theme_colors['bg']};
+                background-color: {theme_colors['bg_secondary']};
                 border: 2px solid {theme_colors['border']};
                 border-radius: 16px;
             }}
@@ -187,6 +218,7 @@ class AnalysisResultWidget(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(30, 30, 30, 30)
 
+        # --- Header ---
         created_at = data.get('created_at', None)
         if created_at:
             dt = QDateTime.fromString(created_at, Qt.ISODate)
@@ -213,33 +245,19 @@ class AnalysisResultWidget(QFrame):
         layout.addLayout(header_layout)
         layout.addSpacing(20)
 
+        # --- Stats ---
         stats_layout = QHBoxLayout()
         stats = data.get('averages', {})
         total = data.get('total_count', 0)
 
-        def create_stat_block(title, value, unit=""):
-            container = QFrame()
-            container.setStyleSheet(f"background-color: rgba(255, 255, 255, 0.03); border-radius: 10px; padding: 10px;")
-            v_layout = QVBoxLayout(container)
-            v_layout.setAlignment(Qt.AlignCenter)
-            
-            t_label = QLabel(title.upper())
-            t_label.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 12px; font-weight: bold;")
-            
-            v_label = QLabel(f"{value} {unit}")
-            v_label.setStyleSheet(f"color: {theme_colors['accent']}; font-size: 24px; font-weight: bold;")
-            
-            v_layout.addWidget(t_label, 0, Qt.AlignCenter)
-            v_layout.addWidget(v_label, 0, Qt.AlignCenter)
-            return container
-
-        stats_layout.addWidget(create_stat_block("Total Units", total))
-        stats_layout.addWidget(create_stat_block("Avg Pressure", stats.get('pressure', 0), "bar"))
-        stats_layout.addWidget(create_stat_block("Avg Temp", stats.get('temperature', 0), "°C"))
+        stats_layout.addWidget(self.create_stat_block("Total Units", total))
+        stats_layout.addWidget(self.create_stat_block("Avg Pressure", stats.get('pressure', 0), "bar"))
+        stats_layout.addWidget(self.create_stat_block("Avg Temp", stats.get('temperature', 0), "°C"))
         
         layout.addLayout(stats_layout)
         layout.addSpacing(30)
 
+        # --- Chart & Button ---
         chart_data = data.get('distribution', {})
         if chart_data:
             labels = chart_data.get('labels', [])
@@ -247,6 +265,51 @@ class AnalysisResultWidget(QFrame):
             
             self.chart = MplBarChart(labels, values, theme_colors, width=5, height=4)
             layout.addWidget(self.chart)
+            
+            # Button Container
+            btn_container = QHBoxLayout()
+            btn_container.addStretch()
+            
+            self.dl_btn = QPushButton(" Download PDF")
+            self.dl_btn.setIcon(qta.icon('fa5s.file-pdf', color=theme_colors['accent']))
+            self.dl_btn.setCursor(Qt.PointingHandCursor)
+            self.dl_btn.setStyleSheet(f"""
+                QPushButton {{
+                    color: {theme_colors['accent']};
+                    border: 1px solid {theme_colors['accent']};
+                    border-radius: 6px;
+                    padding: 6px 12px;
+                    background: transparent;
+                }}
+                QPushButton:hover {{
+                    background-color: {theme_colors['accent_glow']};
+                }}
+            """)
+            self.dl_btn.clicked.connect(self.on_download_click)
+            btn_container.addWidget(self.dl_btn)
+            btn_container.addStretch()
+            
+            layout.addLayout(btn_container)
+    
+    def create_stat_block(self, title, value, unit=""):
+        container = QFrame()
+        container.setStyleSheet(f"background-color: {self.theme_colors['input_bg']}; border-radius: 10px; padding: 10px;")
+        v_layout = QVBoxLayout(container)
+        v_layout.setAlignment(Qt.AlignCenter)
+        
+        t_label = QLabel(title.upper())
+        t_label.setStyleSheet(f"color: {self.theme_colors['text_secondary']}; font-size: 12px; font-weight: bold;")
+        
+        v_label = QLabel(f"{value} {unit}")
+        v_label.setStyleSheet(f"color: {self.theme_colors['accent']}; font-size: 24px; font-weight: bold;")
+        
+        v_layout.addWidget(t_label, 0, Qt.AlignCenter)
+        v_layout.addWidget(v_label, 0, Qt.AlignCenter)
+
+        return container
+
+    def on_download_click(self):
+        self.download_requested.emit(self.data, self.chart)
 
 class DashboardWindow(QMainWindow):
     def __init__(self, theme='dark'):
@@ -257,56 +320,61 @@ class DashboardWindow(QMainWindow):
         self.init_ui()
     
     def display_results(self, data):
-
         if hasattr(self, 'upload_card'):
             self.upload_card.hide()
             self.workspace_layout.removeWidget(self.upload_card)
 
-        theme = THEMES[self.current_theme]
-        colors = {'text_primary': theme['text_primary'], 'text_secondary': theme['text_secondary'], 'border': '#1e293b', 'accent': theme['accent'], 'bg': '#0f172a'}
-                    
-        self.result_widget = AnalysisResultWidget(data,colors)
+        theme_data = THEMES[self.current_theme]
         
+        # Create Widget
+        self.result_widget = AnalysisResultWidget(data, theme_data)
+        
+        # Connect Signals
+        self.result_widget.download_requested.connect(self.handle_pdf_download)
+        
+        # Add to Layout
         self.workspace_layout.insertWidget(0, self.result_widget)
         
+        # Add Reset Button
         self.reset_btn = QPushButton("Analyze New File")
         self.reset_btn.setCursor(Qt.PointingHandCursor)
-        self.reset_btn.setStyleSheet("color: #38bdf8; background: transparent; border: 1px solid #38bdf8; padding: 10px; border-radius: 8px;")
+        self.reset_btn.setStyleSheet(f"color: {theme_data['accent']}; background: transparent; border: 1px solid {theme_data['accent']}; padding: 10px; border-radius: 8px;")
         self.reset_btn.clicked.connect(self.reset_workspace)
+        
         self.workspace_layout.insertWidget(1, self.reset_btn)
 
     def reset_workspace(self):
-        self.result_widget.deleteLater()
-        self.reset_btn.deleteLater()
+        if hasattr(self, 'result_widget'): self.result_widget.deleteLater()
+        if hasattr(self, 'reset_btn'): self.reset_btn.deleteLater()
         
         self.upload_card.show()
         self.workspace_layout.insertWidget(0, self.upload_card)
     
     def upload_csv(self, file_path):
+        # FIX: Ensure URL is correct
         url = "http://127.0.0.1:8000/upload/"
 
         if not hasattr(self, 'token') or not self.token:
             QMessageBox.critical(self, "Error", "You must be logged in to upload files.")
             return
 
-        headers = {
-            "Authorization": f"Token {self.token}" 
-        }
+        headers = { "Authorization": f"Token {self.token}" }
 
         try:
             with open(file_path, 'rb') as f:
                 files = {'file': f}
-                
-                print(f"Uploading {file_path}...")
+                print(f"Uploading {file_path} to {url}...")
                 response = requests.post(url, headers=headers, files=files)
 
             if response.status_code == 200:
                 print("Success:", response.json())
                 QMessageBox.information(self, "Success", "File uploaded and analyzed successfully!")
                 self.display_results(response.json())
-                
             else:
-                error_msg = response.json().get('error', 'Unknown Error')
+                try:
+                    error_msg = response.json().get('error', 'Unknown Error')
+                except:
+                    error_msg = f"Error {response.status_code}"
                 print(f"Upload Failed: {error_msg}")
                 QMessageBox.warning(self, "Upload Failed", str(error_msg))
 
@@ -316,15 +384,8 @@ class DashboardWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"An unexpected error occurred: {str(e)}")
     
     def open_file_dialog(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select CSV File",      
-            "",                    
-            "CSV Files (*.csv)"     
-        )
-
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select CSV File", "", "CSV Files (*.csv)")
         if file_path:
-            print(f"Selected: {file_path}")
             self.upload_csv(file_path)
 
     def init_ui(self):
@@ -350,7 +411,7 @@ class DashboardWindow(QMainWindow):
         logo_box = QHBoxLayout()
         self.logo_lbl = QLabel()
         self.logo_lbl.setPixmap(qta.icon('fa5s.flask', color=THEMES[self.current_theme]['accent']).pixmap(24, 24))
-        logo_text = QLabel("Chemical Equipment Parameter Visualizer")
+        logo_text = QLabel("Chemical Visualizer")
         logo_text.setObjectName("LogoText")
         logo_box.addWidget(self.logo_lbl)
         logo_box.addWidget(logo_text)
@@ -359,12 +420,7 @@ class DashboardWindow(QMainWindow):
         sidebar_layout.addSpacing(30)
 
         self.nav_buttons = [] 
-        
-        menus = [
-            ("Workspace", "fa5s.columns"), 
-            ("History", "fa5s.history"), 
-            ("Profile", "fa5s.user-circle")
-        ]
+        menus = [("Workspace", "fa5s.columns"), ("History", "fa5s.history"), ("Profile", "fa5s.user-circle")]
         
         for i, (name, icon) in enumerate(menus):
             btn = QPushButton(f"  {name}")
@@ -372,7 +428,6 @@ class DashboardWindow(QMainWindow):
             btn.setObjectName("NavItem")
             btn.setCursor(Qt.PointingHandCursor)
             btn.clicked.connect(lambda checked, index=i: self.switch_tab(index))
-            
             sidebar_layout.addWidget(btn)
             self.nav_buttons.append(btn)
 
@@ -434,14 +489,9 @@ class DashboardWindow(QMainWindow):
         self.apply_theme()
 
     def refresh_profile_ui(self):
-
-        if not self.user_data:
-            return
-
-        full_name = f"{self.user_data.get('first_name', '')} {self.user_data.get('last_name', '')}"
-        self.name_lbl.setText(full_name)
+        if not self.user_data: return
+        self.name_lbl.setText(f"{self.user_data.get('first_name', '')} {self.user_data.get('last_name', '')}")
         self.role_lbl.setText(self.user_data.get('role', 'User'))
-
         self.inputs['first_name'].setText(self.user_data.get('first_name', ''))
         self.inputs['last_name'].setText(self.user_data.get('last_name', ''))
         self.inputs['email'].setText(self.user_data.get('email', ''))
@@ -450,9 +500,8 @@ class DashboardWindow(QMainWindow):
 
     def create_workspace_page(self):
         page = QWidget()
-    
         self.workspace_layout = QVBoxLayout(page) 
-
+        
         self.upload_card = QFrame() 
         self.upload_card.setObjectName("GlassCard")
         self.upload_card.setFixedHeight(300)
@@ -480,32 +529,46 @@ class DashboardWindow(QMainWindow):
 
         self.workspace_layout.addWidget(self.upload_card)
         self.workspace_layout.addStretch()
-        
         return page
     
     def fetch_history(self):
+        # 1. Clear Grid
         for i in reversed(range(self.history_grid.count())): 
             self.history_grid.itemAt(i).widget().setParent(None)
 
-        url = "http://127.0.0.1:8000/history/" 
+        # Ensure this URL matches your Django urls.py exactly! 
+        # (e.g. if you have path('api/', include(...)), it might be /api/record/)
+        url = "http://127.0.0.1:8000/record/" 
+        
         if not hasattr(self, 'token'): return
 
         try:
             response = requests.get(url, headers={"Authorization": f"Token {self.token}"})
             
             if response.status_code == 200:
-                records = response.json()
+                # --- FIX START ---
+                response_data = response.json()
                 
-                row, col = 0, 0
-                for record in records:
-                    theme = THEMES[self.current_theme]
-                    colors = {'text_primary': theme['text_primary'], 'text_secondary': theme['text_secondary'], 'border': '#1e293b', 'accent': theme['accent'], 'bg': '#0f172a'}
-                    
-                    card = HistoryCard(record, colors)
-                    self.history_grid.addWidget(card, row, col)
+                # Extract the actual list from the "resultData" key
+                records = response_data.get('resultData', [])
+                
+                if not records:
+                    self.history_grid.addWidget(QLabel("No history found."), 0, 0)
+                    return
+                # --- FIX END ---
 
+                theme = THEMES[self.current_theme]
+                COLUMNS = 2
+                row, col = 0, 0
+                
+                for record in records:
+                    card = HistoryCard(record, theme)
+                    # Connect signal
+                    card.download_requested.connect(self.handle_pdf_download)
+                    
+                    self.history_grid.addWidget(card, row, col)
                     col += 1
-                    if col > 1:
+                    if col >= COLUMNS:
                         col = 0
                         row += 1
             else:
@@ -526,7 +589,6 @@ class DashboardWindow(QMainWindow):
         scroll.setStyleSheet("background: transparent;")
 
         self.history_content_widget = QWidget()
-        
         self.history_grid = QGridLayout(self.history_content_widget)
         self.history_grid.setContentsMargins(30, 30, 30, 30)
         self.history_grid.setSpacing(30)
@@ -546,68 +608,35 @@ class DashboardWindow(QMainWindow):
         refresh_btn.clicked.connect(self.fetch_history)
         
         page_layout.insertWidget(0, refresh_btn, 0, Qt.AlignRight)
-
         return page
     
-    def fetch_history(self):
-        if not self.token:
-            print("No token found")
-            return
+    def handle_pdf_download(self, data, chart_obj):
+        default_name = f"Report_{data.get('created_at', 'data').replace(':', '-')}.pdf"
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Report", default_name, "PDF Files (*.pdf)")
+        
+        if not file_path: return
 
-        print("Fetching history...")
-        
-        url = "http://127.0.0.1:8000/record/" 
-        
-        headers = {
-            "Authorization": f"Token {self.token}",
-            "Content-Type": "application/json"
+        chart_b64 = chart_obj.get_image_base64()
+        payload = {
+            "chartImage": chart_b64,
+            "stats": data.get('averages', {}),
+            "created_at": data.get('created_at', '')
         }
 
-        self.worker = APIWorker(url, method="GET", headers=headers)
-        self.worker.success.connect(self.on_history_success)
-        self.worker.error.connect(lambda e: print(f"History Fetch Error: {e}"))
-        self.worker.start()
-
-    def on_history_success(self, response):
-        history_list = response.get("resultData")
+        # FIX: Ensure URL includes /api/
+        url = "http://127.0.0.1:8000/download/" 
         
-        while self.history_grid.count():
-            item = self.history_grid.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
+        self.dl_worker = DownloadWorker(url, self.token, payload, file_path)
+        self.dl_worker.finished.connect(self.on_download_finished)
+        self.dl_worker.start()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        if not history_list:
-            icon = QLabel()
-            icon.setPixmap(qta.icon('fa5s.box-open', color="#94a3b8").pixmap(64, 64))
-            icon.setAlignment(Qt.AlignCenter)
-            msg = QLabel("No History Available")
-            msg.setStyleSheet("color: #94a3b8; font-size: 18px; font-weight: bold;")
-            msg.setAlignment(Qt.AlignCenter)
-            
-            empty_container = QWidget()
-            empty_l = QVBoxLayout(empty_container)
-            empty_l.addWidget(icon)
-            empty_l.addWidget(msg)
-            
-            self.history_grid.addWidget(empty_container, 0, 0)
-            return
-
-        COLUMNS = 2
-        row, col = 0, 0
-        t_colors = THEMES[self.current_theme]
-
-        for record in history_list:
-            try:
-                card = HistoryCard(record, t_colors)
-                self.history_grid.addWidget(card, row, col)
-                
-                col += 1
-                if col >= COLUMNS:
-                    col = 0
-                    row += 1
-            except Exception as e:
-                print(f"Error creating card: {e}")
+    def on_download_finished(self, success, message):
+        QApplication.restoreOverrideCursor()
+        if success:
+            QMessageBox.information(self, "Success", f"{message}\n\nNote: File is password protected (Use your email).")
+        else:
+            QMessageBox.warning(self, "Download Failed", message)
 
     def create_profile_page(self):
         page = QWidget()
@@ -632,10 +661,7 @@ class DashboardWindow(QMainWindow):
         avatar = QLabel("JD")
         avatar.setAlignment(Qt.AlignCenter)
         avatar.setFixedSize(64, 64)
-        avatar.setStyleSheet(f"""
-            background-color: {THEMES[self.current_theme]['accent']};
-            color: white; font-size: 24px; font-weight: bold; border-radius: 32px;
-        """)
+        avatar.setStyleSheet(f"background-color: {THEMES[self.current_theme]['accent']}; color: white; font-size: 24px; font-weight: bold; border-radius: 32px;")
         
         info_layout = QVBoxLayout()
         self.name_lbl = QLabel("John Doe")
@@ -681,15 +707,11 @@ class DashboardWindow(QMainWindow):
             group = QVBoxLayout()
             lbl = QLabel(label_text)
             lbl.setStyleSheet(f"color: {THEMES[self.current_theme]['text_secondary']}; font-size: 13px;")
-            
             inp = QLineEdit()
             inp.setText(placeholder)
             inp.setReadOnly(True)
-            if is_password:
-                inp.setEchoMode(QLineEdit.Password)
-            
+            if is_password: inp.setEchoMode(QLineEdit.Password)
             self.inputs[key] = inp
-            
             group.addWidget(lbl)
             group.addWidget(inp)
             return group 
@@ -752,7 +774,8 @@ class DashboardWindow(QMainWindow):
         self.current_pass_input.setEchoMode(QLineEdit.Password)
 
         self.save_btn = QPushButton(" Save Changes")
-        self.save_btn.setIcon(qta.icon('fa5s.save', color='white'))
+        icon_color = 'black' if self.current_theme == 'light' else 'white'
+        self.save_btn.setIcon(qta.icon('fa5s.save', color=icon_color))
         self.save_btn.setObjectName("PrimaryBtn")
         self.save_btn.setCursor(Qt.PointingHandCursor)
         self.save_btn.clicked.connect(self.handle_save_profile)
@@ -763,18 +786,14 @@ class DashboardWindow(QMainWindow):
         save_layout.addWidget(self.save_btn)
 
         form_layout.addWidget(self.save_container)
-        
         self.profile_layout.addWidget(form_card)
         self.profile_layout.addStretch()
-
         scroll.setWidget(content_widget)
         page_layout.addWidget(scroll)
-        
         return page
 
     def toggle_edit_mode(self):
         is_editing = self.edit_btn.isChecked()
-
         for key, inp in self.inputs.items():
             inp.setReadOnly(not is_editing)
             if is_editing:
@@ -796,16 +815,12 @@ class DashboardWindow(QMainWindow):
 
     def on_update_success(self, response):
         print("Update Success")
-        
         self.user_data['first_name'] = self.inputs['first_name'].text()
         self.user_data['last_name'] = self.inputs['last_name'].text()
         self.user_data['role'] = self.inputs['role'].text()
-        
         self.refresh_profile_ui()
-
         self.edit_btn.setChecked(False)
         self.toggle_edit_mode()
-        
         self.current_pass_input.clear()
         self.inputs['new_password'].clear()
         self.current_pass_input.setStyleSheet("")
@@ -823,7 +838,6 @@ class DashboardWindow(QMainWindow):
 
     def handle_save_profile(self):
         current_password = self.current_pass_input.text()
-                
         if not current_password:
             self.current_pass_input.setStyleSheet("border: 1px solid red;")
             self.current_pass_input.setPlaceholderText("PASSWORD REQUIRED!")
@@ -842,12 +856,9 @@ class DashboardWindow(QMainWindow):
         self.save_btn.setText("Saving...")
         self.save_btn.setEnabled(False)
 
+        # FIX: Ensure URL includes /api/
         url = "http://127.0.0.1:8000/update/" 
-        
-        headers = {
-            "Authorization": f"Token {self.token}",
-            "Content-Type": "application/json"
-        }
+        headers = { "Authorization": f"Token {self.token}", "Content-Type": "application/json" }
 
         self.worker = APIWorker(url, payload, method="PATCH", headers=headers)
         self.worker.success.connect(self.on_update_success)
@@ -865,7 +876,6 @@ class DashboardWindow(QMainWindow):
                 btn.setProperty("active", "true")
             else:
                 btn.setProperty("active", "false")
-            
             self.style().unpolish(btn)
             self.style().polish(btn)
             
@@ -897,6 +907,9 @@ class DashboardWindow(QMainWindow):
 
     def apply_theme(self):
         self.setStyleSheet(StyleSheetManager.get_sheet(self.current_theme))
+        if hasattr(self, 'save_btn'):
+            icon_color = 'black' if self.current_theme == 'light' else 'white'
+            self.save_btn.setIcon(qta.icon('fa5s.save', color=icon_color))
 
     def handle_logout(self):
         self.login_win = LoginWindow() 
@@ -916,7 +929,6 @@ class MplBarChart(FigureCanvas):
         self.axes.set_facecolor('none')
         
         bar_colors = ['#38bdf8', '#818cf8', '#f472b6']
-        
         bars = self.axes.bar(labels, values, color=bar_colors, alpha=0.7, width=0.5)
         
         self.axes.spines['top'].set_visible(False)
@@ -929,39 +941,59 @@ class MplBarChart(FigureCanvas):
        
         for bar in bars:
             height = bar.get_height()
-            self.axes.text(
-                bar.get_x() + bar.get_width()/2., 
-                height, 
-                f'{int(height)}',
-                ha='center', va='bottom', 
-                color=theme_colors['text_primary'],
-                fontsize=9
-            )
+            self.axes.text(bar.get_x() + bar.get_width()/2., height, f'{int(height)}',
+                ha='center', va='bottom', color=theme_colors['text_primary'], fontsize=9)
         
         self.fig.tight_layout()
+    
+    def get_image_base64(self):
+        buffer = io.BytesIO()
+        self.fig.savefig(buffer, format='png', transparent=True)
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        graphic = base64.b64encode(image_png)
+        return graphic.decode('utf-8')
 
 class HistoryCard(QFrame):
+    download_requested = pyqtSignal(object, object)
     def __init__(self, record, theme_colors):
         super().__init__()
         self.setObjectName("GlassCard")
         self.setFixedSize(350, 320)
+        self.record = record
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(15, 15, 15, 15)
         
         dt = QDateTime.fromString(record['created_at'], Qt.ISODate)
+
         header_layout = QHBoxLayout()
+        header_layout.setSpacing(8)
         
         date_lbl = QLabel(dt.toString("MMM d, yyyy"))
         date_lbl.setStyleSheet(f"color: {theme_colors['text_primary']}; font-weight: bold; font-size: 16px;")
         
+        sep_lbl = QLabel("•")
+        sep_lbl.setStyleSheet(f"color: {theme_colors['accent']}; font-size: 18px; line-height: 1;")
+
         time_lbl = QLabel(dt.toString("h:mm AP"))
         time_lbl.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 13px;")
-        
+
         header_layout.addWidget(date_lbl)
-        header_layout.addStretch()
+        header_layout.addWidget(sep_lbl)
         header_layout.addWidget(time_lbl)
-        layout.addLayout(header_layout)
+        header_layout.addStretch()
+        
+        dl_btn = QPushButton()
+        dl_btn.setIcon(qta.icon('fa5s.download', color=theme_colors['text_secondary']))
+        dl_btn.setToolTip("Download Report")
+        dl_btn.setCursor(Qt.PointingHandCursor)
+        dl_btn.setStyleSheet("background: transparent; border: none;")
+        dl_btn.clicked.connect(self.on_download_click)
+        header_layout.addWidget(dl_btn) 
+        
+        layout.addLayout(header_layout) # Added only once now
         
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -972,8 +1004,11 @@ class HistoryCard(QFrame):
         labels = record['distribution']['labels']
         values = record['distribution']['values']
         
-        chart = MplBarChart(labels, values, theme_colors, width=3.2, height=2.2)
-        layout.addWidget(chart)
+        self.chart = MplBarChart(labels, values, theme_colors, width=3.2, height=2.2)
+        layout.addWidget(self.chart)
+
+    def on_download_click(self):
+        self.download_requested.emit(self.record, self.chart)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
