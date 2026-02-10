@@ -272,13 +272,11 @@
   color: var(--text-secondary);
 }
 
-/* Animations */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Resolutions */
 @media (max-width: 480px) {
   .signupCard {
     padding: 1.5rem;

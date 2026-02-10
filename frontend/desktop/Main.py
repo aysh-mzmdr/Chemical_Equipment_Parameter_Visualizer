@@ -1,309 +1,16 @@
 import sys
 import requests
-import base64
-import io
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QLabel, QLineEdit, QPushButton, QFrame, QStackedWidget, 
-    QGraphicsDropShadowEffect, QScrollArea, QGridLayout, QMessageBox, QFileDialog
+    QScrollArea, QGridLayout, QMessageBox, QFileDialog
 )
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QDateTime, QThread, pyqtSignal
-from PyQt5.QtGui import QColor, QFont, QIcon
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PyQt5.QtGui import QFont, QIcon
 import qtawesome as qta
-
 from StyleSheetManager import * 
 from Thread import APIWorker
-
-import matplotlib
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
-matplotlib.use('Qt5Agg')
-
-class DownloadWorker(QThread):
-    finished = pyqtSignal(bool, str) 
-
-    def __init__(self, url, token, payload, save_path):
-        super().__init__()
-        self.url = url
-        self.token = token
-        self.payload = payload
-        self.save_path = save_path
-
-    def run(self):
-        try:
-            headers = {
-                "Authorization": f"Token {self.token}",
-                "Content-Type": "application/json"
-            }
-            response = requests.post(self.url, json=self.payload, headers=headers)
-
-            if response.status_code == 200:
-                with open(self.save_path, 'wb') as f:
-                    f.write(response.content)
-                self.finished.emit(True, "PDF Downloaded Successfully!")
-            else:
-                self.finished.emit(False, f"Server Error: {response.status_code}")
-        except Exception as e:
-            self.finished.emit(False, str(e))
-
-class LoginWindow(QMainWindow, StyleSheetManager):
-    
-    def __init__(self, theme='dark'):
-        super().__init__()
-        self.setWindowIcon(QIcon("../flask.svg"))
-        self.current_theme = theme
-        self.inputs = {}
-        self.token = None      
-        self.user_data = {}
-        self.init_ui()
-
-    def init_ui(self):
-        self.setWindowTitle("Chemical Equipment Parameter Visualizer - Login")
-        self.setFixedSize(720,680)
-
-        self.central_widget = QWidget()
-        self.central_widget.setObjectName("CentralWidget")
-        self.setCentralWidget(self.central_widget)
-
-        main_layout = QVBoxLayout(self.central_widget)
-        main_layout.setAlignment(Qt.AlignCenter)
-
-        self.toggle_btn = QPushButton()
-        self.toggle_btn.setIcon(qta.icon('fa5s.sun' if self.current_theme == 'dark' else 'fa5s.moon', color='#94a3b8'))
-        self.toggle_btn.setFixedSize(40, 40)
-        self.toggle_btn.setStyleSheet("background: transparent; border: 1px solid #1e293b; border-radius: 8px;")
-        self.toggle_btn.setCursor(Qt.PointingHandCursor)
-        self.toggle_btn.clicked.connect(self.toggle_theme)
-        
-        top_bar = QHBoxLayout()
-        top_bar.addStretch()
-        top_bar.addWidget(self.toggle_btn)
-        main_layout.addLayout(top_bar)
-        main_layout.addStretch()
-
-        self.card = QFrame()
-        self.card.setObjectName("GlassCard")
-        self.card.setFixedSize(700,600)
-        
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(30)
-        shadow.setColor(QColor(0, 0, 0, 80))
-        shadow.setOffset(0, 10)
-        self.card.setGraphicsEffect(shadow)
-
-        card_layout = QVBoxLayout(self.card)
-        card_layout.setContentsMargins(40, 40, 40, 40)
-        card_layout.setSpacing(20)
-
-        logo_layout = QVBoxLayout()
-        logo_icon = QLabel()
-        logo_pixmap = qta.icon('fa5s.flask', color=THEMES[self.current_theme]['accent']).pixmap(48, 48)
-        logo_icon.setPixmap(logo_pixmap)
-        logo_icon.setAlignment(Qt.AlignCenter)
-        
-        title = QLabel("Welcome Back")
-        title.setObjectName("Title")
-        title.setAlignment(Qt.AlignCenter)
-        
-        subtitle = QLabel("Enter your credentials to access the equipment parameters dashboard.")
-        subtitle.setObjectName("Subtitle")
-        subtitle.setWordWrap(True)
-        subtitle.setAlignment(Qt.AlignCenter)
-
-        logo_layout.addWidget(logo_icon)
-        logo_layout.addWidget(title)
-        logo_layout.addWidget(subtitle)
-        card_layout.addLayout(logo_layout)
-
-        self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText("eng.name@company.com")
-        
-        self.pass_input = QLineEdit()
-        self.pass_input.setPlaceholderText("Enter your password")
-        self.pass_input.setEchoMode(QLineEdit.Password)
-
-        self.login_btn = QPushButton("Sign In to Console")
-        self.login_btn.setObjectName("PrimaryBtn")
-        self.login_btn.setCursor(Qt.PointingHandCursor)
-        self.login_btn.clicked.connect(self.handle_login)
-
-        domain_name1=QLabel("Work Email")
-        domain_name1.setObjectName("Domain_name")
-        domain_name2=QLabel("Password")
-        domain_name2.setObjectName("Domain_name")
-        card_layout.addWidget(domain_name1)
-        card_layout.addWidget(self.email_input)
-        card_layout.addWidget(domain_name2)
-        card_layout.addWidget(self.pass_input)
-        card_layout.addWidget(self.login_btn)
-        card_layout.addStretch()
-
-        main_layout.addWidget(self.card)
-        main_layout.addStretch()
-
-        self.apply_theme()
-
-    def toggle_theme(self):
-        self.current_theme = 'light' if self.current_theme == 'dark' else 'dark'
-        
-        icon_name = 'fa5s.moon' if self.current_theme == 'light' else 'fa5s.sun'
-        self.toggle_btn.setIcon(qta.icon(icon_name, color='#94a3b8'))
-        
-        self.apply_theme()
-
-    def apply_theme(self):
-        self.setStyleSheet(StyleSheetManager.get_sheet(self.current_theme))
-
-    def handle_login(self):
-        email = self.email_input.text()
-        password = self.pass_input.text()
-        
-        self.login_btn.setEnabled(False)
-        self.login_btn.setText("Logging in...")
-
-        url = "http://127.0.0.1:8000/login/"
-        data = {"username": email, "password": password}
-
-        self.worker = APIWorker(url, data)
-        self.worker.success.connect(self.on_login_success)
-        self.worker.error.connect(self.on_login_error)
-        self.worker.finished.connect(self.on_request_finished)
-        self.worker.start()
-
-    def on_login_success(self, response_data):
-        print("Login Success!")
-        
-        self.dashboard = DashboardWindow(self.current_theme)
-        self.dashboard.token = response_data.get('token')
-        self.dashboard.user_data = response_data.get('user', {}) 
-        self.dashboard.refresh_profile_ui() 
-        self.dashboard.show()
-        self.close()
-
-    def on_login_error(self, error_message):
-        print(f"Update Failed: {error_message}")
-        QMessageBox.warning(self, "Error", str(error_message))
-
-    def on_request_finished(self):
-        self.login_btn.setEnabled(True)
-        self.login_btn.setText("Sign In to Console")
-
-    def closeEvent(self, event):
-        if hasattr(self, 'worker') and self.worker.isRunning():
-            self.worker.terminate()
-            self.worker.wait()
-        event.accept()
-
-class AnalysisResultWidget(QFrame):
-    download_requested = pyqtSignal(object, object)
-    
-    def __init__(self, data, theme_colors):
-        super().__init__()
-        self.setObjectName("GlassCard")
-        self.data = data
-        self.theme_colors = theme_colors
-        
-        self.setStyleSheet(f"""
-            #GlassCard {{
-                background-color: {theme_colors['bg_secondary']};
-                border: 2px solid {theme_colors['border']};
-                border-radius: 16px;
-            }}
-            QLabel {{ color: {theme_colors['text_primary']}; }}
-        """)
-        
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(30, 30, 30, 30)
-
-        created_at = data.get('created_at', None)
-        if created_at:
-            dt = QDateTime.fromString(created_at, Qt.ISODate)
-        else:
-            dt = QDateTime.currentDateTime()
-
-        header_layout = QHBoxLayout()
-        header_layout.setSpacing(8)
-
-        date_lbl = QLabel(dt.toString("MMM d, yyyy"))
-        date_lbl.setStyleSheet(f"color: {theme_colors['text_primary']}; font-weight: bold; font-size: 18px;")
-
-        sep_lbl = QLabel("•")
-        sep_lbl.setStyleSheet(f"color: {theme_colors['accent']}; font-size: 20px; line-height: 1;")
-
-        time_lbl = QLabel(dt.toString("h:mm AP"))
-        time_lbl.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 14px; font-weight: 500;")
-
-        header_layout.addWidget(date_lbl)
-        header_layout.addWidget(sep_lbl)
-        header_layout.addWidget(time_lbl)
-        header_layout.addStretch()
-        
-        layout.addLayout(header_layout)
-        layout.addSpacing(20)
-
-        stats_layout = QHBoxLayout()
-        stats = data.get('averages', {})
-        total = data.get('total_count', 0)
-
-        stats_layout.addWidget(self.create_stat_block("Total Units", total))
-        stats_layout.addWidget(self.create_stat_block("Avg Pressure", stats.get('pressure', 0), "bar"))
-        stats_layout.addWidget(self.create_stat_block("Avg Temp", stats.get('temperature', 0), "°C"))
-        
-        layout.addLayout(stats_layout)
-        layout.addSpacing(30)
-
-        chart_data = data.get('distribution', {})
-        if chart_data:
-            labels = chart_data.get('labels', [])
-            values = chart_data.get('values', [])
-            
-            self.chart = MplBarChart(labels, values, theme_colors, width=5, height=4)
-            layout.addWidget(self.chart)
-
-            btn_container = QHBoxLayout()
-            btn_container.addStretch()
-            
-            self.dl_btn = QPushButton(" Download PDF")
-            self.dl_btn.setIcon(qta.icon('fa5s.file-pdf', color=theme_colors['accent']))
-            self.dl_btn.setCursor(Qt.PointingHandCursor)
-            self.dl_btn.setStyleSheet(f"""
-                QPushButton {{
-                    color: {theme_colors['accent']};
-                    border: 1px solid {theme_colors['accent']};
-                    border-radius: 6px;
-                    padding: 6px 12px;
-                    background: transparent;
-                }}
-                QPushButton:hover {{
-                    background-color: {theme_colors['accent_glow']};
-                }}
-            """)
-            self.dl_btn.clicked.connect(self.on_download_click)
-            btn_container.addWidget(self.dl_btn)
-            btn_container.addStretch()
-            
-            layout.addLayout(btn_container)
-    
-    def create_stat_block(self, title, value, unit=""):
-        container = QFrame()
-        container.setStyleSheet(f"background-color: {self.theme_colors['input_bg']}; border-radius: 10px; padding: 10px;")
-        v_layout = QVBoxLayout(container)
-        v_layout.setAlignment(Qt.AlignCenter)
-        
-        t_label = QLabel(title.upper())
-        t_label.setStyleSheet(f"color: {self.theme_colors['text_secondary']}; font-size: 12px; font-weight: bold;")
-        
-        v_label = QLabel(f"{value} {unit}")
-        v_label.setStyleSheet(f"color: {self.theme_colors['accent']}; font-size: 24px; font-weight: bold;")
-        
-        v_layout.addWidget(t_label, 0, Qt.AlignCenter)
-        v_layout.addWidget(v_label, 0, Qt.AlignCenter)
-
-        return container
-
-    def on_download_click(self):
-        self.download_requested.emit(self.data, self.chart)
+import AnalysisResultWidget,HistoryCard,DownloadWorker,LoginWindow
 
 class DashboardWindow(QMainWindow):
     def __init__(self, theme='dark'):
@@ -321,7 +28,7 @@ class DashboardWindow(QMainWindow):
 
         theme_data = THEMES[self.current_theme]
         
-        self.result_widget = AnalysisResultWidget(data, theme_data)
+        self.result_widget = AnalysisResultWidget.AnalysisResultWidget(data, theme_data)
         self.result_widget.download_requested.connect(self.handle_pdf_download)
         self.workspace_layout.insertWidget(0, self.result_widget)
 
@@ -355,7 +62,7 @@ class DashboardWindow(QMainWindow):
                 response = requests.post(url, headers=headers, files=files)
 
             if response.status_code == 200:
-                print("Success:", response.json())
+                print("Upload Success")
                 QMessageBox.information(self, "Success", "File uploaded and analyzed successfully!")
                 self.display_results(response.json())
             else:
@@ -544,7 +251,7 @@ class DashboardWindow(QMainWindow):
                 row, col = 0, 0
                 
                 for record in records:
-                    card = HistoryCard(record, theme)
+                    card = HistoryCard.HistoryCard(record, theme)
                     card.download_requested.connect(self.handle_pdf_download)
                     
                     self.history_grid.addWidget(card, row, col)
@@ -606,7 +313,7 @@ class DashboardWindow(QMainWindow):
 
         url = "http://127.0.0.1:8000/download/" 
         
-        self.dl_worker = DownloadWorker(url, self.token, payload, file_path)
+        self.dl_worker = DownloadWorker.DownloadWorker(url, self.token, payload, file_path)
         self.dl_worker.finished.connect(self.on_download_finished)
         self.dl_worker.start()
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -891,103 +598,11 @@ class DashboardWindow(QMainWindow):
             self.save_btn.setIcon(qta.icon('fa5s.save', color=icon_color))
 
     def handle_logout(self):
-        self.login_win = LoginWindow() 
+        self.login_win = LoginWindow.LoginWindow() 
         self.login_win.current_theme = self.current_theme
         self.login_win.apply_theme()
         self.login_win.show()
         self.close()
-
-class MplBarChart(FigureCanvas):
-   
-    def __init__(self, labels, values, theme_colors, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        self.fig.patch.set_facecolor('none')
-        super().__init__(self.fig)
-        
-        self.axes = self.fig.add_subplot(111)
-        self.axes.set_facecolor('none')
-        
-        bar_colors = ['#38bdf8', '#818cf8', '#f472b6']
-        bars = self.axes.bar(labels, values, color=bar_colors, alpha=0.7, width=0.5)
-        
-        self.axes.spines['top'].set_visible(False)
-        self.axes.spines['right'].set_visible(False)
-        self.axes.spines['left'].set_visible(False)
-        self.axes.spines['bottom'].set_color(theme_colors['text_secondary'])
-        
-        self.axes.tick_params(axis='x', colors=theme_colors['text_secondary'])
-        self.axes.tick_params(axis='y', colors=theme_colors['text_secondary'])
-       
-        for bar in bars:
-            height = bar.get_height()
-            self.axes.text(bar.get_x() + bar.get_width()/2., height, f'{int(height)}',
-                ha='center', va='bottom', color=theme_colors['text_primary'], fontsize=9)
-        
-        self.fig.tight_layout()
-    
-    def get_image_base64(self):
-        buffer = io.BytesIO()
-        self.fig.savefig(buffer, format='png', transparent=True)
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
-        graphic = base64.b64encode(image_png)
-        return graphic.decode('utf-8')
-
-class HistoryCard(QFrame):
-    download_requested = pyqtSignal(object, object)
-    def __init__(self, record, theme_colors):
-        super().__init__()
-        self.setObjectName("GlassCard")
-        self.setFixedSize(350, 320)
-        self.record = record
-        
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 15, 15, 15)
-        
-        dt = QDateTime.fromString(record['created_at'], Qt.ISODate)
-
-        header_layout = QHBoxLayout()
-        header_layout.setSpacing(8)
-        
-        date_lbl = QLabel(dt.toString("MMM d, yyyy"))
-        date_lbl.setStyleSheet(f"color: {theme_colors['text_primary']}; font-weight: bold; font-size: 16px;")
-        
-        sep_lbl = QLabel("•")
-        sep_lbl.setStyleSheet(f"color: {theme_colors['accent']}; font-size: 18px; line-height: 1;")
-
-        time_lbl = QLabel(dt.toString("h:mm AP"))
-        time_lbl.setStyleSheet(f"color: {theme_colors['text_secondary']}; font-size: 13px;")
-
-        header_layout.addWidget(date_lbl)
-        header_layout.addWidget(sep_lbl)
-        header_layout.addWidget(time_lbl)
-        header_layout.addStretch()
-        
-        dl_btn = QPushButton()
-        dl_btn.setIcon(qta.icon('fa5s.download', color=theme_colors['text_secondary']))
-        dl_btn.setToolTip("Download Report")
-        dl_btn.setCursor(Qt.PointingHandCursor)
-        dl_btn.setStyleSheet("background: transparent; border: none;")
-        dl_btn.clicked.connect(self.on_download_click)
-        header_layout.addWidget(dl_btn) 
-        
-        layout.addLayout(header_layout)
-        
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        line.setStyleSheet(f"background-color: {theme_colors['border']}; margin: 5px 0;")
-        layout.addWidget(line)
-
-        labels = record['distribution']['labels']
-        values = record['distribution']['values']
-        
-        self.chart = MplBarChart(labels, values, theme_colors, width=3.2, height=2.2)
-        layout.addWidget(self.chart)
-
-    def on_download_click(self):
-        self.download_requested.emit(self.record, self.chart)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -1004,7 +619,7 @@ if __name__ == "__main__":
 
     app.setWindowIcon(QIcon("../flask.svg"))
 
-    window = LoginWindow()
+    window = LoginWindow.LoginWindow()
     window.show()
     
     sys.exit(app.exec_())
