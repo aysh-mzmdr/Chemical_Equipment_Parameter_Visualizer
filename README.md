@@ -79,5 +79,5 @@ Step 3: Run the Desktop Application
 # Open a new terminal, and run the desktop app
 
 cd frontend/desktop
-./Application.py
+./Main.py
 ```
