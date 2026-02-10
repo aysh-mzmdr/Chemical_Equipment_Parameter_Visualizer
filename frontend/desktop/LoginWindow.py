@@ -8,7 +8,7 @@ from PyQt5.QtGui import QColor, QIcon
 import qtawesome as qta
 from StyleSheetManager import * 
 from Thread import APIWorker
-import Main
+import DashboardWindow
 
 class LoginWindow(QMainWindow, StyleSheetManager):
     
@@ -137,7 +137,7 @@ class LoginWindow(QMainWindow, StyleSheetManager):
     def on_login_success(self, response_data):
         print("Login Success!")
         
-        self.dashboard = Main.DashboardWindow(self.current_theme)
+        self.dashboard = DashboardWindow.DashboardWindow(self.current_theme)
         self.dashboard.token = response_data.get('token')
         self.dashboard.user_data = response_data.get('user', {}) 
         self.dashboard.refresh_profile_ui() 
