@@ -37,3 +37,6 @@ class APIWorker(QThread):
             self.error.emit(str(e))
         finally:
             self.finished.emit()
+
+if __name__ == "__main__":
+    print("Error: Run Main.py to start the application!")

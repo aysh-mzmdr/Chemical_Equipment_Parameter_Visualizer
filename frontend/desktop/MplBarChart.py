@@ -43,3 +43,6 @@ class MplBarChart(FigureCanvas):
         buffer.close()
         graphic = base64.b64encode(image_png)
         return graphic.decode('utf-8')
+    
+if __name__ == "__main__":
+    print("Error: Run Main.py to start the application!")

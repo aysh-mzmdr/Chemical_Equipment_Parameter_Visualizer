@@ -116,3 +116,6 @@ class AnalysisResultWidget(QFrame):
 
     def on_download_click(self):
         self.download_requested.emit(self.data, self.chart)
+
+if __name__ == "__main__":
+    print("Error: Run Main.py to start the application!")

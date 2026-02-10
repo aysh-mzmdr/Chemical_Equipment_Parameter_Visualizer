@@ -31,3 +31,6 @@ class DownloadWorker(QThread):
                 self.finished.emit(False, f"Server Error: {response.status_code}")
         except Exception as e:
             self.finished.emit(False, str(e))
+
+if __name__ == "__main__":
+    print("Error: Run Main.py to start the application!")

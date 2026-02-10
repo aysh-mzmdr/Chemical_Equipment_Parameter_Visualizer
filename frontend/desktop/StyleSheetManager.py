@@ -166,3 +166,6 @@ class StyleSheetManager:
                 margin-top: 25px;
             }}
         """
+    
+if __name__ == "__main__":
+    print("Error: Run Main.py to start the application!")
